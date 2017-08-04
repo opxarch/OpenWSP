@@ -1,0 +1,5 @@
+#
+# The main framwork of the project is written in C++, apart from too many
+# C sources in 'codec' dir.
+#
+*.c linguist-language=C++
