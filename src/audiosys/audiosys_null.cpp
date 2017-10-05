@@ -21,8 +21,8 @@
 /*******************************************************************************
 *   Header Files                                                               *
 *******************************************************************************/
-#include <stdio.h>
-#include <stdlib.h>
+#include <cstdio>
+#include <cstdlib>
 #include <sys/time.h>
 
 #include <openwsp/err.h>

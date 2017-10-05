@@ -24,8 +24,8 @@
 #include <iostream>
 #include <assert.h>
 #include <exception>
-#include <assert.h>
-#include <log.h>
+#include <cassert>
+#include "log.h"
 
 #include "openwsp.h"
 

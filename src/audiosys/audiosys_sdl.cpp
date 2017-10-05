@@ -21,9 +21,9 @@
 /*******************************************************************************
 *   Header Files                                                               *
 *******************************************************************************/
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 #include <SDL/SDL.h>
 
 #include <openwsp/err.h>

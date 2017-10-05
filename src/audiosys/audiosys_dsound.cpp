@@ -21,12 +21,12 @@
 /*******************************************************************************
 *   Header Files                                                               *
 *******************************************************************************/
-#include <stdio.h>
-#include <stdlib.h>
+#include <cstdio>
+#include <cstdlib>
 #include <windows.h>
 #define DIRECTSOUND_VERSION 0x0600
 #include <dsound.h>
-#include <math.h>
+#include <cmath>
 
 #include <openwsp/err.h>
 #include <openwsp/misc.h>

@@ -23,8 +23,8 @@
 *******************************************************************************/
 #include <new>
 #include <iostream>
-#include <stdlib.h>
-#include <string.h>
+#include <cstdlib>
+#include <cstring>
 #include <openwsp/javacore.h>
 #include <openwsp/err.h>
 #include <openwsp/assert.h>

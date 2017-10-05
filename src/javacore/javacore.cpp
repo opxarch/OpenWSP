@@ -27,7 +27,7 @@
 #include <openwsp/err.h>
 #include <openwsp/assert.h>
 
-#include <string.h>
+#include <cstring>
 #include "jsi.h"
 
 #include "openwsp/javacore.h"

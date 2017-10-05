@@ -21,10 +21,10 @@
 /*******************************************************************************
 *   Header Files                                                               *
 *******************************************************************************/
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdarg.h>
-#include <string.h>
+#include <cstdio>
+#include <cstdlib>
+#include <cstdarg>
+#include <cstring>
 
 #include <openwsp/misc.h>
 #include <openwsp/tracker.h>
