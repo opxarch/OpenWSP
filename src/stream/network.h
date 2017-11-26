@@ -18,7 +18,7 @@
 #define STREAM_NETWORK_H_
 
 #include <fcntl.h>
-#include <sys/time.h>
+//#include <sys/time.h>
 #include <sys/types.h>
 
 #include <openwsp/misc.h>

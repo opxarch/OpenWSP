@@ -31,9 +31,10 @@ Purpose     : Implementation of edit widget
 *
 *       EDIT_CreateIndirect
 */
-EDIT_Handle EDIT_CreateIndirect(const GUI_WIDGET_CREATE_INFO* pCreateInfo, WM_HWIN hWinParent, int x0, int y0, WM_CALLBACK* cb) {
+EDIT_Handle EDIT_CreateIndirect(const GUI_WIDGET_CREATE_INFO* pCreateInfo, WM_HWIN hWinParent, int x0, int y0, WM_CALLBACK* cb, void *opaque) {
   EDIT_Handle hEdit;
   GUI_USE_PARA(cb);
+  GUI_USE_PARA(opaque);
   hEdit = EDIT_CreateEx(pCreateInfo->x0 + x0, pCreateInfo->y0 + y0, pCreateInfo->xSize, pCreateInfo->ySize,
                         hWinParent, 0, pCreateInfo->Flags, pCreateInfo->Id, pCreateInfo->Para);
   if (hEdit) {

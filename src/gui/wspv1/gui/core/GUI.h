@@ -36,6 +36,14 @@ Attention : Do not modify this file ! If you do, you will not
 extern "C" {     /* Make sure we have C-declarations in C++ programs */
 #endif
 
+#ifndef NULL
+  #ifndef __cplusplus
+    #define NULL ((void *)0)
+  #else   /* C++ */
+    #define NULL 0
+  #endif
+#endif
+
 /*********************************************************************
 *
 *        Limitations for certain C51 Keil  (__C51__)
@@ -350,6 +358,9 @@ extern GUI_CONST_STORAGE GUI_FONT GUI_FontD80;
 extern GUI_CONST_STORAGE GUI_FONT GUI_FontComic18B_ASCII, GUI_FontComic18B_1;
 extern GUI_CONST_STORAGE GUI_FONT GUI_FontComic24B_ASCII, GUI_FontComic24B_1;
 
+/* Ext. fonts */
+extern GUI_CONST_STORAGE GUI_FONT GUI_FontTahoma12;
+extern GUI_CONST_STORAGE GUI_FONT GUI_FontTahoma12B;
 
 /*
       *********************************

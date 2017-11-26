@@ -31,6 +31,8 @@
 #include <inttypes.h>
 #include <limits.h>
 
+#include <openwsp/types.h>
+
 #include "cookies.h"
 
 #include "../log.h"

@@ -45,12 +45,12 @@ Purpose     :
 *     -> FRAMEWIN either a) reacts or b)sends WM_NOTIFY_PARENT_REFLECTION back
 *       In case of a) This module reacts !
 */
-static void _cbClose(WM_MESSAGE* pMsg) {
+static void _cbClose(WM_MESSAGE* pMsg, void *opaque) {
   if (pMsg->MsgId == WM_NOTIFY_PARENT_REFLECTION) {
     WM_DeleteWindow(pMsg->hWinSrc);
     return;                                       /* We are done ! */
   }
-  BUTTON_Callback(pMsg);
+  BUTTON_Callback(pMsg, opaque);
 }
 
 /*********************************************************************
@@ -87,7 +87,7 @@ WM_HWIN FRAMEWIN_AddCloseButton(FRAMEWIN_Handle hObj, int Flags, int Off) {
   WM_HWIN hButton;
   hButton = FRAMEWIN_AddButton(hObj, Flags, Off, GUI_ID_CLOSE);
   BUTTON_SetSelfDraw(hButton, 0, &_Draw);
-  WM_SetCallback(hButton, _cbClose);
+  WM_SetCallback(hButton, _cbClose, 0);
   return hButton;
 }
 

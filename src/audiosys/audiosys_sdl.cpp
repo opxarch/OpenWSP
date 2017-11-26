@@ -59,6 +59,7 @@ namespace openwsp {
 // empty, not only one byte.
 #define BUFFSIZE ((NUM_CHUNKS + 1) * CHUNK_SIZE)
 
+#define USE_SDL_INTERNAL_MIXER 1
 
 /*******************************************************************************
 *   Internal functions                                                         *
@@ -92,14 +93,14 @@ public:
         switch (cmd) {
             case AOCONTROL_GET_VOLUME:
             {
-                ao_control_vol_t* vol = (ao_control_vol_t*)arg;
+                as_control_vol_t* vol = (as_control_vol_t*)arg;
                 vol->left = vol->right = volume * 100 / SDL_MIX_MAXVOLUME;
                 return CONTROL_OK;
             }
             case AOCONTROL_SET_VOLUME:
             {
                 int diff;
-                ao_control_vol_t* vol = (ao_control_vol_t*)arg;
+                as_control_vol_t* vol = (as_control_vol_t*)arg;
                 diff = (vol->left+vol->right) / 2;
                 volume = diff * SDL_MIX_MAXVOLUME / 100;
                 return CONTROL_OK;
@@ -116,8 +117,7 @@ public:
         /* SDL Audio Specifications */
         SDL_AudioSpec aspec, obtained;
 
-        /* Allocate ring-buffer memory */
-        buffer = (unsigned char *) malloc(BUFFSIZE);
+        buffer = 0;
 
         ws_log::write(log::M_AUDIOSYS,log::INFO, MSGTR_AS_SDL_INFO, rate, (channels > 1) ? "Stereo" : "Mono", af_fmt2str_short(format));
 
@@ -168,11 +168,14 @@ public:
         /* Number of channels (mono/stereo) */
         aspec.channels = channels;
 
+        ws_log(log::M_AUDIOSYS, log::INFO) << "bytes per sample = " << m_bps << endlog;
         /* The desired size of the audio buffer in samples. This number should be a power of two, and may be adjusted by the audio driver to a value more suitable for the hardware. Good values seem to range between 512 and 8192 inclusive, depending on the application and CPU speed. Smaller values yield faster response time, but can lead to underflow if the application is doing heavy processing and cannot fill the audio buffer in time. A stereo sample consists of both right and left channels in LR ordering. Note that the number of samples is directly related to time by the following formula: ms = (samples*1000)/freq */
-        aspec.samples  = SAMPLESIZE;
+        aspec.samples  = BUFFSIZE;//SAMPLESIZE; //m_bps; //!fixme?
 
-        /* This should be set to a function that will be called when the audio device is ready for more data. It is passed a pointer to the audio buffer, and the length in bytes of the audio buffer. This function usually runs in a separate thread, and so you should protect data structures that it accesses by calling SDL_LockAudio and SDL_UnlockAudio in your code. The callback prototype is:
-    void callback(void *userdata, Uint8 *stream, int len); userdata is the pointer stored in userdata field of the SDL_AudioSpec. stream is a pointer to the audio buffer you want to fill with information and len is the length of the audio buffer in bytes. */
+        /*
+         * This should be set to a function that will be called when the audio device is ready for more data. It is passed a pointer to the audio buffer, and the length in bytes of the audio buffer. This function usually runs in a separate thread, and so you should protect data structures that it accesses by calling SDL_LockAudio and SDL_UnlockAudio in your code. The callback prototype is:
+         * void callback(void *userdata, Uint8 *stream, int len); userdata is the pointer stored in userdata field of the SDL_AudioSpec. stream is a pointer to the audio buffer you want to fill with information and len is the length of the audio buffer in bytes.
+         */
         aspec.callback = outputaudio;
 
         /* This pointer is passed as the first parameter to the callback function. */
@@ -218,9 +221,14 @@ public:
                 return 0;
         }
 
-        ws_log::write(log::M_AUDIOSYS,log::INFO, "SDL: buf size = %d\n",obtained.size);
-        m_buffersize=obtained.size;
+        m_buffersize = obtained.size + CHUNK_SIZE; //!fixme?
         m_outburst = CHUNK_SIZE;
+        ws_log::write(log::M_AUDIOSYS,log::INFO, "SDL: buf size = %d chunk size = %d\n",m_buffersize, m_outburst);
+
+        /* Allocate ring-buffer memory */
+        buffer = (unsigned char *) malloc(m_buffersize);
+        if (!buffer)
+            return WERR_ALLOC_MEMORY;
 
         reset();
         /* unsilence audio, if callback is ready */
@@ -236,6 +244,8 @@ public:
           usecSleep(get_delay() * 1000 * 1000);
         SDL_CloseAudio();
         SDL_QuitSubSystem(SDL_INIT_AUDIO);
+        if (buffer)
+            free(buffer);
         return WINF_SUCCEEDED;
     }
 
@@ -294,7 +304,7 @@ public:
 
     // return: delay in seconds between first and last sample in buffer
     float get_delay(void){
-        int buffered = BUFFSIZE - CHUNK_SIZE - buf_free(); // could be less
+        int buffered = /*BUFFSIZE*/m_buffersize - m_outburst/*CHUNK_SIZE*/ - buf_free(); // could be less
         return (float)(buffered + m_buffersize)/(float)m_bps;
     }
 
@@ -320,8 +330,8 @@ private:
     // return value may change between immediately following two calls,
     // and the real number of free bytes might be larger!
     int buf_free(void) {
-      int free = read_pos - write_pos - CHUNK_SIZE;
-      if (free < 0) free += BUFFSIZE;
+      int free = read_pos - write_pos - m_outburst/*CHUNK_SIZE*/;
+      if (free < 0) free += m_buffersize/*BUFFSIZE*/;
       return free;
     }
 
@@ -330,30 +340,32 @@ private:
     // and the real number of buffered bytes might be larger!
     int buf_used(void) {
       int used = write_pos - read_pos;
-      if (used < 0) used += BUFFSIZE;
+      if (used < 0) used += m_buffersize/*BUFFSIZE*/;
       return used;
     }
 
-    int write_buffer(unsigned char* data,int len){
-      int first_len = BUFFSIZE - write_pos;
+    int write_buffer(unsigned char* data,int len) {
+      int first_len = m_buffersize/*BUFFSIZE*/ - write_pos;
       int free = buf_free();
       if (len > free) len = free;
       if (first_len > len) first_len = len;
+      if (!buffer) return 0;
       // till end of buffer
       fast_memcpy (&buffer[write_pos], data, first_len);
       if (len > first_len) { // we have to wrap around
         // remaining part from beginning of buffer
         fast_memcpy (buffer, &data[first_len], len - first_len);
       }
-      write_pos = (write_pos + len) % BUFFSIZE;
+      write_pos = (write_pos + len) % m_buffersize/*BUFFSIZE*/;
       return len;
     }
 
     int read_buffer(unsigned char* data,int len){
-      int first_len = BUFFSIZE - read_pos;
+      int first_len = m_buffersize/*BUFFSIZE*/ - read_pos;
       int buffered = buf_used();
       if (len > buffered) len = buffered;
       if (first_len > len) first_len = len;
+      if (!buffer) return 0;
       // till end of buffer
     #ifdef USE_SDL_INTERNAL_MIXER
       SDL_MixAudio (data, &buffer[read_pos], first_len, volume);
@@ -368,7 +380,7 @@ private:
         fast_memcpy (&data[first_len], buffer, len - first_len);
     #endif
       }
-      read_pos = (read_pos + len) % BUFFSIZE;
+      read_pos = (read_pos + len) % m_buffersize/*BUFFSIZE*/;
       return len;
     }
 
@@ -386,7 +398,9 @@ IAudioOutput *audio_out_sdl = static_cast<IAudioOutput*>(&audio_out_sdl_instance
 static void outputaudio(void *unused, Uint8 *stream, int len) {
     SDLImpl *impl = static_cast<SDLImpl*>(unused);
 
-    printf("fetch len=%d\n", len);
+#if 0
+    ws_log(log::INFO) << "fetch len=" << len << endlog;
+#endif
     // fetch data from ring queue
     impl->read_buffer((unsigned char*)stream, len);
 }

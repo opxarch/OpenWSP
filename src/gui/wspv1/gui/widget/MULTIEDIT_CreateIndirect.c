@@ -32,9 +32,10 @@ Purpose     : Implementation of multiedit widget
 *
 *       MULTIEDIT_CreateIndirect
 */
-MULTIEDIT_HANDLE MULTIEDIT_CreateIndirect(const GUI_WIDGET_CREATE_INFO* pCreateInfo, WM_HWIN hWinParent, int x0, int y0, WM_CALLBACK* cb) {
+MULTIEDIT_HANDLE MULTIEDIT_CreateIndirect(const GUI_WIDGET_CREATE_INFO* pCreateInfo, WM_HWIN hWinParent, int x0, int y0, WM_CALLBACK* cb, void *opaque) {
   MULTIEDIT_HANDLE  hThis;
   GUI_USE_PARA(cb);
+  GUI_USE_PARA(opaque);
   hThis = MULTIEDIT_CreateEx(pCreateInfo->x0 + x0, pCreateInfo->y0 + y0, pCreateInfo->xSize, pCreateInfo->ySize,
                              hWinParent, 0, pCreateInfo->Flags, pCreateInfo->Id, pCreateInfo->Para, NULL);
   return hThis;

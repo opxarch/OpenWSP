@@ -263,7 +263,7 @@ static void _OnPidStateChange(BUTTON_Handle hObj, BUTTON_Obj * pObj, WM_MESSAGE 
 *
 *       BUTTON_Callback
 */
-void BUTTON_Callback(WM_MESSAGE *pMsg) {
+void BUTTON_Callback(WM_MESSAGE *pMsg, void *opaque) {
   BUTTON_Handle hObj = pMsg->hWin;
   BUTTON_Obj* pObj = BUTTON_H2P(hObj);
   /* Let widget handle the standard messages */
@@ -327,7 +327,7 @@ BUTTON_Handle BUTTON_CreateEx(int x0, int y0, int xsize, int ysize, WM_HWIN hPar
   GUI_USE_PARA(ExFlags);
   /* Create the window */
   WM_LOCK();
-  hObj = WM_CreateWindowAsChild(x0, y0, xsize, ysize, hParent, WinFlags, BUTTON_Callback,
+  hObj = WM_CreateWindowAsChild(x0, y0, xsize, ysize, hParent, WinFlags, BUTTON_Callback,0,
                                 sizeof(BUTTON_Obj) - sizeof(WM_Obj));
   if (hObj) {
     BUTTON_Obj* pObj = BUTTON_H2P(hObj);

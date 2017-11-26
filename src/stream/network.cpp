@@ -31,6 +31,7 @@
 #include <errno.h>
 #include <ctype.h>
 
+#include <openwsp/types.h>
 #include <openwsp/misc.h>
 
 #include "../log.h"

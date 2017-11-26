@@ -1,0 +1,9 @@
+FIXUPS:
+
+fixup: #171126001:
+1. Improved the Multi-Threading mechanism.
+2. Improved the Event pump and looping.
+3. Add the main GUI framework.
+4. Improved the "QingTing FM" Webservice API.
+5. Update the C/C++ header files.
+6. Fixup README.md.

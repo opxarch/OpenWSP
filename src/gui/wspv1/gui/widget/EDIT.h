@@ -97,7 +97,7 @@ typedef void tEDIT_UpdateBuffer(EDIT_Handle hObj);
 
 EDIT_Handle EDIT_Create        (int x0, int y0, int xsize, int ysize, int Id, int MaxLen, int Flags);
 EDIT_Handle EDIT_CreateAsChild (int x0, int y0, int xsize, int ysize, WM_HWIN hParent, int Id, int Flags, int MaxLen);
-EDIT_Handle EDIT_CreateIndirect(const GUI_WIDGET_CREATE_INFO* pCreateInfo, WM_HWIN hWinParent, int x0, int y0, WM_CALLBACK* cb);
+EDIT_Handle EDIT_CreateIndirect(const GUI_WIDGET_CREATE_INFO* pCreateInfo, WM_HWIN hWinParent, int x0, int y0, WM_CALLBACK* cb, void *opaque);
 EDIT_Handle EDIT_CreateEx      (int x0, int y0, int xsize, int ysize, WM_HWIN hParent,
                                 int WinFlags, int ExFlags, int Id, int MaxLen);
 

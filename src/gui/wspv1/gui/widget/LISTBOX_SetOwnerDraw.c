@@ -31,13 +31,14 @@ Purpose     : Implementation of listbox widget
 *
 *       LISTBOX_SetOwnerDraw
 */
-void LISTBOX_SetOwnerDraw(LISTBOX_Handle hObj, WIDGET_DRAW_ITEM_FUNC * pfDrawItem) {
+void LISTBOX_SetOwnerDraw(LISTBOX_Handle hObj, WIDGET_DRAW_ITEM_FUNC * pfDrawItem, void *opaque) {
   LISTBOX_Obj* pObj;
   if (hObj) {
     WM_LOCK();
     pObj = LISTBOX_H2P(hObj);
     ASSERT_IS_VALID_PTR(pObj);
     pObj->pfDrawItem = pfDrawItem;
+    pObj->drawItemOpaque = opaque;
     LISTBOX_InvalidateItem(hObj, LISTBOX_ALL_ITEMS);
     WM_UNLOCK();
   }

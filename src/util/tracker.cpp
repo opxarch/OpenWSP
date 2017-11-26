@@ -31,9 +31,31 @@ namespace openwsp {
 
 Locator::Locator(const char *file, int line, const char *func)
     : m_file(file ? file : "(null)"),
-      m_line(line ? line : "(null)"),
+      m_line(line),
       m_func(func ? func : "(null)")
 {
+}
+
+Locator::Locator()
+    : m_file("(unset)"),
+      m_line(0),
+      m_func("(unset")
+{
+}
+
+Locator::Locator(const Locator &src) {
+    copy(src);
+}
+
+Locator &Locator::operator =(const Locator &src) {
+    copy(src);
+    return (*this);
+}
+
+void Locator::copy(const Locator &src) {
+    m_file = src.m_file;
+    m_line = src.m_line;
+    m_func = src.m_func;
 }
 
 } //namespace openwsp

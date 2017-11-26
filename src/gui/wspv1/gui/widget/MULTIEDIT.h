@@ -70,7 +70,7 @@ MULTIEDIT_HANDLE MULTIEDIT_Create        (int x0, int y0, int xsize, int ysize, 
                                           int Id, int Flags, int ExFlags, const char* pText, 
                                           int BufferSize);
 MULTIEDIT_HANDLE MULTIEDIT_CreateIndirect(const GUI_WIDGET_CREATE_INFO* pCreateInfo, 
-                                          WM_HWIN hWinParent, int x0, int y0, WM_CALLBACK* cb);
+                                          WM_HWIN hWinParent, int x0, int y0, WM_CALLBACK* cb, void *opaque);
 
 /*********************************************************************
 *

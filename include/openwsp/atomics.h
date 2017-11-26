@@ -45,26 +45,42 @@ static inline int compareAndSwap (uint32_t volatile *p)
     return ret;
 }
 #elif ARCH(X86)
-static inline int compareAndSwap (uint32_t volatile *p)
+static inline int compareAndSwap (uint32_t volatile *p, const uint32_t newval, uint32_t oldval)
 {
-    long int readval = 0;
-
-    __asm__ __volatile__ ("lock; cmpxchgl %2, %0"
-                          : "+m" (*p), "+a" (readval)
-                          : "r" (1)
-                          : "cc");
-    return readval;
+    uint8_t ret = 0;
+#if COMPILER_SUP(INLINE_ASM_GNU_STYLE)
+    __asm__ __volatile__("lock; cmpxchgl %3, %0\n\t"
+                             "setz  %1\n\t"
+                             : "=m" (*p),
+                               "=qm" (ret),
+                               "=a" (oldval)
+                             : "r" (newval),
+                               "2" (oldval),
+                               "m" (*p));
+#else
+    //!todo
+#endif
+    UNUSED(ret);
+    return oldval;
 }
 #elif ARCH(AMD64)
-static inline int compareAndSwap (uint32_t volatile *p)
+static inline int compareAndSwap (uint32_t volatile *p, const uint32_t newval, uint32_t oldval)
 {
-    long int readval = 0;
-
-    __asm__ __volatile__ ("lock; cmpxchgl %2, %0"
-                          : "+m" (*p), "+a" (readval)
-                          : "r" (1)
-                          : "cc");
-    return readval;
+    uint8_t ret = 0;
+#if COMPILER_SUP(INLINE_ASM_GNU_STYLE)
+    __asm__ __volatile__("lock; cmpxchgl %3, %0\n\t"
+                             "setz  %1\n\t"
+                             : "=m" (*p),
+                               "=qm" (ret),
+                               "=a" (oldval)
+                             : "r" (newval),
+                               "2" (oldval),
+                               "m" (*p));
+#else
+    //!todo
+#endif
+    UNUSED(ret);
+    return oldval;
 }
 #elif ARCH(S390)
 static inline int compareAndSwap (uint32_t volatile *p)

@@ -35,6 +35,10 @@ int integerToString(int src, int radix, char *buff, int len, int *outlen);
 int floatToString(float src, int radix, long precision, char *buff, int len, int *outlen);
 int booleanToString(bool src, char *buff, int len, int *outlen);
 
+void *memcpyLimited(void *dst, const void *src, size_t size, size_t maxsize);
+
+int encodeString(char *src, const char *fromcode, const char *tocode, char *buff, size_t buffsize);
+
 } // namespace openwsp
 
 END_C_DECLS

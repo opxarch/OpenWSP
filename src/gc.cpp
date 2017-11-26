@@ -1,5 +1,5 @@
 /** @file
- * OpenWSP - I/O Thread.
+ * OpenWSP - garbage collection.
  */
 
 /*
@@ -18,46 +18,49 @@
  *  Lesser General Public License for more details.
  */
 
-/*******************************************************************************
-*   Header Files                                                               *
-*******************************************************************************/
-#include <openwsp/thread.h>
-#include <openwsp/err.h>
-
-#include "openwsp.h"
-#include "threads.h"
+#include "gc.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 
 namespace openwsp {
 
-IOThread::IOThread() {
-
+void GCTarget::setPtr(void *ptr) {
+    m_ptr = ptr;
 }
 
-IOThread::~IOThread() {
+bool GCTarget::noref() {
+    WS_ASSERT( m_ref >=0 );
+    return m_ref <= 0;
+}
 
+void GCTarget::release() {
+    m_ref--;
+    WS_ASSERT( m_ref >=0 );
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 
-int IOThread::init(Openwsp *app) {
+int GC::addRegistry(GCTarget *src) {
+    return m_targets.Pushfront(src);
+}
+
+void GC::scan() {
     int rc;
-    rc = create(app);
-    return rc;
-}
+    GCTarget *gc;
 
-int IOThread::uninit() {
-    return WINF_SUCCEEDED;
-}
-
-/**
- * Entry of I/O thread context.
- * @param opaque pointer data.
- * @return status code.
- */
-int IOThread::run(void *opaque) {
-    return WINF_SUCCEEDED;
+    for (m_targets.begin(); m_targets.end(); m_targets++)
+    {
+        rc = m_targets.get(gc);
+        if (WS_SUCCESS(rc)) {
+            /*
+             * The object has no reference, so just do destruction
+             * and delete it from the memory.
+             */
+            if (gc->noref()) {
+                gc->deleteRel();
+            }
+        }
+    }
 }
 
 } // namespace openwsp

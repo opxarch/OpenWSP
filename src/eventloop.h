@@ -19,6 +19,8 @@
 
 #include <openwsp/thread.h>
 
+#include <openwsp/autoptr.h>
+
 namespace openwsp {
 
 class ThreadBase;
@@ -30,7 +32,8 @@ class WSEvent;
 enum ThreadType {
     THREAD_UNKNOWN = 0,
     THREAD_MAIN,
-    THREAD_IO
+    THREAD_IO,
+    THREAD_AUDIO
 };
 
 
@@ -43,14 +46,21 @@ public:
     EventLoop();
     ~EventLoop();
 
-    int init(ThreadBase *main, ThreadBase *io);
+    int init(ThreadBase *main, ThreadBase *io, ThreadBase *audio);
     int uninit();
 
-    int PostEvent(ThreadType type, WSEvent *event);
+    int threadBasePtr(ThreadType type, ThreadBase **out);
+    ThreadId_t threadId(ThreadType type);
+
+    AutoPtr<WSEvent> PostEvent(ThreadType type, WSEvent *event, int *rc = 0);
 
 private:
     ThreadBase *m_mainThread;
     ThreadBase *m_ioThread;
+    ThreadBase *m_audioThread;
+    ThreadId_t  m_tidMain;
+    ThreadId_t  m_tidIo;
+    ThreadId_t  m_tidAudio;
 };
 
 

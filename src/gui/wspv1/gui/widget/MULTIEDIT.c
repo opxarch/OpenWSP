@@ -1285,7 +1285,7 @@ static int _AddKey(MULTIEDIT_HANDLE hObj, U16 Key) {
 *
 *       _MULTIEDIT_Callback
 */
-static void _MULTIEDIT_Callback (WM_MESSAGE *pMsg) {
+static void _MULTIEDIT_Callback (WM_MESSAGE *pMsg, void *opaque) {
   MULTIEDIT_HANDLE hObj;
   MULTIEDIT_OBJ* pObj;
   WM_SCROLL_STATE ScrollState;
@@ -1388,7 +1388,7 @@ MULTIEDIT_HANDLE MULTIEDIT_CreateEx(int x0, int y0, int xsize, int ysize, WM_HWI
     xsize = Rect.x1 - Rect.x0 + 1;
     ysize = Rect.y1 - Rect.y0 + 1;
   }
-  hObj = WM_CreateWindowAsChild(x0, y0, xsize, ysize, hParent, WinFlags, &_MULTIEDIT_Callback,
+  hObj = WM_CreateWindowAsChild(x0, y0, xsize, ysize, hParent, WinFlags, &_MULTIEDIT_Callback,0,
                                 sizeof(MULTIEDIT_OBJ) - sizeof(WM_Obj));
   if (hObj) {
     int i;

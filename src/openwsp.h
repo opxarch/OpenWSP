@@ -18,23 +18,28 @@
 #define OPENWSP_H_
 
 #include <openwsp/webservice.h>
-#include "gui/gui.h"
+#include <openwsp/misc.h>
+#include <openwsp/tracker.h>
 #include "threads.h"
 #include "eventloop.h"
 #include "eventfactory.h"
+#include "gui/gui.h"
 
 namespace openwsp {
 
-/*
- playback status
- */
-enum PSTATE {
-    PSTATE_PLAYING = 0,
-    PSTATE_PAUSED,
-    PSTATE_STOPPED
-};
+inline class Openwsp &app();
 
-class IAudioOutput;
+/**
+ * Assert that we are in the thread context for which we expected.
+ */
+#if ENABLE(ASSERTIONS)
+# define AssertThread(type) { app().validThread(type, MakeLocator()); } while(0)
+#else
+# define AssertThread(type) (void)0
+#endif
+
+
+extern class Openwsp *openwsp_instance_;
 
 /***************************************************
   *****  OpenWSP application object            *****
@@ -52,41 +57,63 @@ public:
     void QuitApplication();
 
 public:
+
+#if ENABLE(ASSERTIONS)
+    int validThread(ThreadType type, const Locator &loc);
+#endif
+
+    inline EventLoop &threadLoop() {
+        return *events;
+    }
+
+    /////////////////////////////////////////////////////////////////////
+    // for I/O Thread context only
+    ////////////////////////////////////////////////////////////////////
+    inline ThreadIO &threadIO() {
+        AssertThread(THREAD_IO);
+        return *ioThread;
+    }
+
+    /////////////////////////////////////////////////////////////////////
+    // for Main Thread context only
+    ////////////////////////////////////////////////////////////////////
+    inline ThreadMain &threadMain() {
+        AssertThread(THREAD_MAIN);
+        return *mainThread;
+    }
+
+    /////////////////////////////////////////////////////////////////////
+    // for Audio Thread context only
+    ////////////////////////////////////////////////////////////////////
+    inline ThreadAudio &threadAudio() {
+        AssertThread(THREAD_AUDIO);
+        return *audioThread;
+    }
+
+    /**
+     * Get the instance (create a new one if needed).
+     * @return pointer to the instance.
+     */
+    static inline Openwsp *instance() {
+        return openwsp_instance_;
+    }
+public:
     int idle();
-    int createAudioProcessContext(const char *url);
-    int runAudioProcess();
-    int endAudioPrcoessContext();
-    int test(void *p, int i);
 
 private:
-    int initAudioChain();
-
-private:
-    struct demuxer_s *demuxer;
-    struct stream_s *stream;
-
-    struct sh_audio_s *sh_audio;
-    struct demux_stream_s *ds_audio;
-    IAudioOutput *audio_out;
-
-    int     file_format;
-
-    /* status */
-    int     state;
-    int     audio_delay;
-    double  audio_clock;
-    double  audio_clock_length;
-
     EventFactory<Openwsp> event;
 
 protected:
-    Webservice      websrv;
-    wsGUI           gui;
-    IOThread        ioThread;
-    MainThread      mainThread;
-public:
-    EventLoop       events;
+    class gui::wsGUI      *gui;
+    class ThreadIO        *ioThread;
+    class ThreadMain      *mainThread;
+    class ThreadAudio     *audioThread;
+    class EventLoop       *events;
 };
+
+inline Openwsp &app() {
+    return *(Openwsp::instance());
+}
 
 } // namespace openwsp
 

@@ -17,7 +17,7 @@
 #ifndef OPENWSP_GUI_H_
 #define OPENWSP_GUI_H_
 
-namespace openwsp {
+namespace gui {
 
 /***************************************************
   *****             GUI object                 *****

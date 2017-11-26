@@ -237,7 +237,7 @@ static void  _OnKey(CHECKBOX_Handle hObj, CHECKBOX_Obj * pObj, WM_MESSAGE * pMsg
 *
 *       _CHECKBOX_Callback
 */
-static void _CHECKBOX_Callback (WM_MESSAGE *pMsg) {
+static void _CHECKBOX_Callback (WM_MESSAGE *pMsg, void *opaque) {
   CHECKBOX_Handle hObj;
   CHECKBOX_Obj* pObj;
   hObj = pMsg->hWin;
@@ -298,7 +298,7 @@ CHECKBOX_Handle CHECKBOX_CreateEx(int x0, int y0, int xsize, int ysize, WM_HWIN 
   }
 #endif
   /* Create the window */
-  hObj = WM_CreateWindowAsChild(x0, y0, xsize, ysize, hParent, WinFlags, _CHECKBOX_Callback,
+  hObj = WM_CreateWindowAsChild(x0, y0, xsize, ysize, hParent, WinFlags, _CHECKBOX_Callback,0,
                                 sizeof(CHECKBOX_Obj) - sizeof(WM_Obj));
   if (hObj) {
     CHECKBOX_Obj* pObj = CHECKBOX_H2P(hObj);

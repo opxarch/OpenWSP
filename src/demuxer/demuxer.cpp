@@ -24,12 +24,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <unistd.h>
+//#include <unistd.h>
 
 #include <sys/types.h>
 #include <sys/stat.h>
 
 #include "config.h"
+#include <openwsp/types.h>
 #include <openwsp/misc.h>
 #include <openwsp/bswap.h>
 #include <openwsp/err.h>

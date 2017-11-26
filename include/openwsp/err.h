@@ -23,6 +23,8 @@
 
 /* gen{{ */
 
+/** Operation is continuing. */
+#define WINF_CONTINUING (4)
 /** Operation is terminated. */
 #define WINF_TERMINATED (3)
 /** Skip an operation. */
@@ -67,6 +69,10 @@
 #define WERR_INVALID_TARGET (-17)
 /** The object is a playlist */
 #define WERR_PLAYLIST (-18)
+/** Invalid source string encoding */
+#define WERR_INVALID_SRC_STR_ENCODING (-19)
+/** Invalid string encoding convertion */
+#define WERR_INVALID_STR_ENCODING (-20)
 
 /* }}gen */
 

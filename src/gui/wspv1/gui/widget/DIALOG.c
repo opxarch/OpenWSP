@@ -99,10 +99,10 @@ WM_DIALOG_STATUS*  GUI_GetDialogStatusPtr(WM_HWIN hDialog) {
 *
 *       GUI_CreateDialogbox
 */
-WM_HWIN GUI_CreateDialogBox(const GUI_WIDGET_CREATE_INFO* paWidget, int NumWidgets, WM_CALLBACK* cb, WM_HWIN hParent,
+WM_HWIN GUI_CreateDialogBox(const GUI_WIDGET_CREATE_INFO* paWidget, int NumWidgets, WM_CALLBACK* cb, void *opaque, WM_HWIN hParent,
                             int x0, int y0)
 {
-  WM_HWIN hDialog = paWidget->pfCreateIndirect(paWidget, hParent, x0, y0, cb);     /* Create parent window */
+  WM_HWIN hDialog = paWidget->pfCreateIndirect(paWidget, hParent, x0, y0, cb, opaque);     /* Create parent window */
   WM_HWIN hDialogClient = WM_GetClientWindow(hDialog);
   WIDGET_OrState(hDialog, paWidget->Flags);
   WM_ShowWindow(hDialog);
@@ -110,7 +110,7 @@ WM_HWIN GUI_CreateDialogBox(const GUI_WIDGET_CREATE_INFO* paWidget, int NumWidge
   while (--NumWidgets > 0) {
     WM_HWIN hChild;
     paWidget++;
-    hChild = paWidget->pfCreateIndirect(paWidget, hDialogClient, 0, 0, 0);     /* Create child window */
+    hChild = paWidget->pfCreateIndirect(paWidget, hDialogClient, 0, 0, NULL, NULL);     /* Create child window */
     WM_ShowWindow(hChild);
   }
   WM_SetFocusOnNextChild(hDialog);     /* Set the focus to the first child */
@@ -160,10 +160,10 @@ int     GUI_ExecCreatedDialog (WM_HWIN hDialog) {
 *
 */
 int GUI_ExecDialogBox(const GUI_WIDGET_CREATE_INFO* paWidget,
-                      int NumWidgets, WM_CALLBACK* cb, WM_HWIN hParent, int x0, int y0)
+                      int NumWidgets, WM_CALLBACK* cb, void *opaque, WM_HWIN hParent, int x0, int y0)
 {
   WM_HWIN hDialog;
-  hDialog = GUI_CreateDialogBox(paWidget, NumWidgets, cb, hParent, x0, y0);
+  hDialog = GUI_CreateDialogBox(paWidget, NumWidgets, cb, opaque, hParent, x0, y0);
   return GUI_ExecCreatedDialog(hDialog);
 }
 

@@ -108,7 +108,7 @@ typedef struct {
 */
 typedef struct {
  // const char* pText;
-  char* pText;
+  const char* pText;
   U16         Id;
   U16         Flags;
   MENU_Handle hSubmenu;
@@ -121,7 +121,7 @@ typedef struct {
 **********************************************************************
 */
 
-MENU_Handle MENU_CreateIndirect(const GUI_WIDGET_CREATE_INFO* pCreateInfo, WM_HWIN hWinParent, int x0, int y0, WM_CALLBACK* cb);
+MENU_Handle MENU_CreateIndirect(const GUI_WIDGET_CREATE_INFO* pCreateInfo, WM_HWIN hWinParent, int x0, int y0, WM_CALLBACK* cb, void *opaque);
 MENU_Handle MENU_CreateEx      (int x0, int y0, int xSize, int ySize, WM_HWIN hParent, int WinFlags, int ExFlags, int Id);
 
 /*********************************************************************

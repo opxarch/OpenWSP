@@ -290,7 +290,7 @@ static void _OnTouch(HEADER_Handle hObj, HEADER_Obj * pObj, WM_MESSAGE * pMsg) {
 *
 *       _HEADER_Callback
 */
-static void _HEADER_Callback (WM_MESSAGE *pMsg) {
+static void _HEADER_Callback (WM_MESSAGE *pMsg, void *opaque) {
   HEADER_Handle hObj;
   HEADER_Obj * pObj;
   hObj = pMsg->hWin;
@@ -361,7 +361,7 @@ HEADER_Handle HEADER_CreateEx(int x0, int y0, int xsize, int ysize, WM_HWIN hPar
     ysize += 2 * (unsigned)pEffect->EffectSize;
   }
   WinFlags |= WM_CF_ANCHOR_LEFT | WM_CF_ANCHOR_RIGHT;
-  hObj = WM_CreateWindowAsChild(x0, y0, xsize, ysize, hParent, WinFlags, &_HEADER_Callback,
+  hObj = WM_CreateWindowAsChild(x0, y0, xsize, ysize, hParent, WinFlags, &_HEADER_Callback,0,
                                 sizeof(HEADER_Obj) - sizeof(WM_Obj));
   if (hObj) {
     HEADER_Obj* pObj = HEADER_H2P(hObj);

@@ -27,7 +27,7 @@
 #include <openwsp/err.h>
 #include <openwsp/assert.h>
 
-#include <cstring>
+#include <string.h>
 #include "jsi.h"
 
 #include "openwsp/javacore.h"
@@ -94,7 +94,7 @@ int Javacore::uninit() {
  *                          terminated by '\0' (null) char, otherwise
  *                          may caused a buffer overflowing fault.
  */
-int Javacore::execCode(const char *str) {
+int Javacore::exec(const char *str) {
     codebuff = str;
     int jsr = js_dostring(jsc, str);
     codebuff = 0;
@@ -201,6 +201,10 @@ int Javacore::createGlobalObject(const char *name) {
 void Javacore::registerFunc(const char *name, jscCallback func, unsigned length) {
     js_newcfunction(jsc, (js_CFunction)func, name, length);
     js_setglobal(jsc, name);
+}
+
+jscContext *Javacore::context() {
+    return (jscContext*)jsc;
 }
 
 jscContext *Javacore::getGlobal(const char *name) {

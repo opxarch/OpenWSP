@@ -271,7 +271,7 @@ static void  _OnKey(SLIDER_Handle hObj, WM_MESSAGE*pMsg) {
 *
 *       _SLIDER_Callback
 */
-static void _SLIDER_Callback (WM_MESSAGE *pMsg) {
+static void _SLIDER_Callback (WM_MESSAGE *pMsg, void *opaque) {
   SLIDER_Handle hObj;
   SLIDER_Obj* pObj;
   hObj = pMsg->hWin;
@@ -318,7 +318,7 @@ SLIDER_Handle SLIDER_CreateEx(int x0, int y0, int xsize, int ysize, WM_HWIN hPar
   #if SLIDER_SUPPORT_TRANSPARENCY
     WinFlags |= WM_CF_HASTRANS;
   #endif
-  hObj = WM_CreateWindowAsChild(x0, y0, xsize, ysize, hParent, WinFlags, _SLIDER_Callback, sizeof(SLIDER_Obj) - sizeof(WM_Obj));
+  hObj = WM_CreateWindowAsChild(x0, y0, xsize, ysize, hParent, WinFlags, _SLIDER_Callback,0, sizeof(SLIDER_Obj) - sizeof(WM_Obj));
   if (hObj) {
     SLIDER_Obj* pObj = SLIDER_H2P(hObj);
     U16 InitState;

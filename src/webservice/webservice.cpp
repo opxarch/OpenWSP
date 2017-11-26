@@ -23,8 +23,8 @@
 *******************************************************************************/
 #include <new>
 #include <iostream>
-#include <cstdlib>
-#include <cstring>
+#include <stdlib.h>
+#include <string.h>
 #include <openwsp/javacore.h>
 #include <openwsp/err.h>
 #include <openwsp/assert.h>
@@ -340,20 +340,23 @@ int Webservice::resolveModule_inner(const char *fn) {
             free(buff);
             return WS_FAILURE(rc) ? WERR_RUN_CODE : rc;
         }
-        /* reallocate buffer */
+        
+        /*
+         * reallocate buffer for creasing data
+         */
         total += len;
-        if (bufsize < total) {
+        if ( bufsize < total ) {
             bufsize = total + 256; // a block
             char *p = buff;
-            buff = (char*)realloc(buff, bufsize);
+            buff = static_cast<char*>(realloc (buff, bufsize));
             if (!buff) {
-                if (p) free(p);
+                if (p) free (p);
                 return WERR_ALLOC_MEMORY;
             }
-            memset(buff + d, 0, bufsize - d);
+            memset (buff + d, 0, bufsize - d);
         }
 
-        memcpy(buff + d, chunk, len);
+        memcpy (buff + d, chunk, len);
         d += len;
     } // for
     return WERR_FAILED;
@@ -382,9 +385,7 @@ int Webservice::ResolveModules() {
     rc = enumFiles(WEBAPIS_PATH "/*" APIFILE_SUFFIX, &fls, 0);
     if (WS_SUCCESS(rc)) {
 
-      for (fls.begin();
-              fls.end();
-              fls++)
+      for (fls.begin(); fls.end(); fls++)
       {
         rc = fls.get(name);
         if (WS_SUCCESS(rc))
@@ -424,7 +425,7 @@ int Webservice::execCode(const char *code) {
     int rc;
 
     js->cleanUp();
-    rc = js->execCode(code);
+    rc = js->exec(code);
     js->cleanUp();
 
     return rc;
@@ -456,11 +457,33 @@ int Webservice::LoadModule(const char *name) {
      */
     if (found && node->m_code) {
         js->cleanUp();
-        rc = js->execCode(node->m_code);
-        UPDATE_RC(rc);
 
         /* environment */
-        rc = js->execCode("var __rc;");
+        rc = js->exec("var __rc;");
+        UPDATE_RC(rc);
+
+        rc = js->exec(
+            /*
+             * To free the memory used by the array.
+             * @param arry Target array object.
+             */
+            "function _eraseArray(arry) {"                  "\n"
+#if 0
+            "   var obj;"                                   "\n"
+            "   for (var i = arry.length-1; i >= 0; i--) {" "\n"
+            "       obj = arry.pop();"                      "\n"
+            "       obj.release();"                         "\n"
+            "       obj = null;"                            "\n"
+            "   }"                                          "\n"
+#endif
+            "   arry.length = 0;"                           "\n"
+            "}"                                             "\n"
+        );
+
+        UPDATE_RC(rc);
+
+        /* module codes */
+        rc = js->exec(node->m_code);
         UPDATE_RC(rc);
 
         module_loaded = true;
@@ -483,7 +506,7 @@ int Webservice::connect() {
     if (!module_loaded)
         return WERR_FAILED;
 
-    rc = js->execCode("__rc = wspAPI.connect();");
+    rc = js->exec("__rc = wspAPI.connect();");
     if (WS_SUCCESS(rc)) {
         jscContext *ctx = js->getGlobal("__rc");
         jrc = ctx->toboolean(ctx, -1);
@@ -502,12 +525,12 @@ int Webservice::connect() {
  * @return status code.
  */
 int Webservice::catalogs(WSList<catalog *> *out) {
-    int rc;
+    int rc = 1;
 
     if (!module_loaded)
         return WERR_FAILED;
 
-    rc = js->execCode(
+    rc = js->exec(
             "__rc = wspAPI.catalogs();\n"
             ""
             );
@@ -517,39 +540,288 @@ int Webservice::catalogs(WSList<catalog *> *out) {
         unsigned length = js->getLength(-1);
 
         int id;
-        const char *name;
+        const char *s_name, *s_desc, *s_catalog;
 
         for (unsigned i = 0; i < length; i++)
         {
             js->getIndex(-1, i);
 
-            js->getProperty(-1, "name");
-            name = p->tostring(p, -1);
+            /*
+             * Query the result
+             */
+            js->getProperty(-1, "name");    s_name = p->tostring(p, -1); p->pop(p, 1);
+            js->getProperty(-1, "desc");    s_desc = p->tostring(p, -1); p->pop(p, 1);
+            js->getProperty(-1, "catalog"); s_catalog = p->tostring(p, -1); p->pop(p, 1);
+            js->getProperty(-1, "id");      id = p->tointeger(p, -1); p->pop(p, 1);
+
             p->pop(p, 1);
-            js->getProperty(-1, "id");
-            id = p->tointeger(p, -1);
 
-            p->pop(p, 2);
-
-            catalog *c = new (std::nothrow) catalog(id, name);
+            catalog *c = new (std::nothrow) catalog(id, s_name, s_desc, s_catalog);
             if (!c) {
-                p->pop(p, 1);
-                return WERR_ALLOC_MEMORY;
-            }
-
-            rc = out->Pushfront(c);
-            if (WS_FAILURE(rc)) {
-                p->pop(p, 1);
-                return rc;
+                rc = WERR_ALLOC_MEMORY;
+            } else {
+                rc = out->Pushfront(c);
             }
         }
 
         p->pop(p, 1);
 
-        return WINF_SUCCEEDED;
+        if (WS_SUCCESS(rc)) {
+            rc = js->exec("_eraseArray(__rc); __rc = [];\n");
+        }
+
+        return rc;
     }
     return WERR_RUN_CODE;
 }
+
+int Webservice::channelInner(jscContext *p, channel **out) {
+    int rc = 1;
+    channel *ch = 0;
+
+    // fields - channel :
+    int id;
+    const char *s_name, *s_desc;
+    const char *s_thumb_small, *s_thumb_medium, *s_thumb_large;
+    
+    // fields - channel::mediainfo :
+    int media_id;
+    // fields - channel::property :
+    const char *s_prop_name, *s_prop_desc, *s_prop_value;
+
+    /*
+     * Query the result
+     */
+    js->getProperty(-1, "name"); s_name = p->tostring(p, -1); p->pop(p, 1);
+    js->getProperty(-1, "desc"); s_desc = p->tostring(p, -1); p->pop(p, 1);
+    js->getProperty(-1, "id");   id = p->tointeger(p, -1); p->pop(p, 1);
+
+    js->getProperty(-1, "thumb_small"); s_thumb_small = p->tostring(p, -1); p->pop(p, 1);
+    js->getProperty(-1, "thumb_medium");s_thumb_medium = p->tostring(p, -1); p->pop(p, 1);
+    js->getProperty(-1, "thumb_large"); s_thumb_large = p->tostring(p, -1); p->pop(p, 1);
+
+    /*
+     * Create the channel field object
+     */
+    if (!(ch = new (std::nothrow) channel
+            (id, s_name, s_desc, s_thumb_small, s_thumb_medium, s_thumb_large))) {
+        return WERR_ALLOC_MEMORY;
+    }
+
+    /*
+     * Query the media information
+     */
+    js->getProperty(-1, "mediainfo"); {
+
+      unsigned mediaLength = js->getLength(-1);
+
+      for (unsigned j = 0; j < mediaLength; j++) {
+        js->getIndex(-1, j); {
+          js->getProperty(-1, "id"); media_id = p->tointeger(p, -1); p->pop(p, 1);
+
+          channel::mediainfo *md = new channel::mediainfo(media_id);
+          if (!md) {
+              rc = WERR_ALLOC_MEMORY;
+              break;
+          }
+          ch->pushMediaInfo(md);
+        }
+        p->pop(p, 1);
+      }
+
+    }
+    p->pop(p, 1);
+
+    /*
+     * Query the extra properties
+     */
+    js->getProperty(-1, "exproperty"); {
+
+      unsigned propLength = js->getLength(-1);
+
+      for (unsigned j = 0; j < propLength; j++) {
+        js->getIndex(-1, j); {
+          js->getProperty(-1, "name");    s_prop_name = p->tostring(p, -1); p->pop(p, 1);
+          js->getProperty(-1, "desc");    s_prop_desc = p->tostring(p, -1); p->pop(p, 1);
+          js->getProperty(-1, "value");   s_prop_value = p->tostring(p, -1); p->pop(p, 1);
+
+          channel::exproperty *md;
+          if (!(md = new channel::exproperty(s_prop_name, s_prop_desc, s_prop_value))) {
+              rc = WERR_ALLOC_MEMORY;
+              break;
+          }
+          ch->pushProperty(md);
+        }
+        p->pop(p, 1);
+      }
+
+    }
+    p->pop(p, 1);
+
+    *out = WS_SUCCESS(rc) ? ch : 0;
+    return rc;
+}
+
+/**
+ * Call channel() function in module script.
+ * This will new some catalog objects, and you should delete
+ * them explicitly.
+ * @param id  The Id of source catalog.
+ * @param out Pointer to the target to store the result.
+ * @return status code.
+ */
+int Webservice::queryChannelInfo(int id, channel **out) {
+    int rc = 1;
+
+    if (!module_loaded)
+        return WERR_FAILED;
+
+    char entry[2048] = {0};
+
+    int len = snprintf(entry, sizeof(entry),
+            "__rc = wspAPI.channel(%d);\n"
+            "",
+            id);
+    if ((unsigned)len >= sizeof(entry)) {
+        return WERR_BUFFER_OVERFLOW;
+    }
+
+    rc = js->exec(entry);
+    if (WS_SUCCESS(rc)) {
+        jscContext *p = js->getGlobal("__rc"); {
+            rc = channelInner(p, out);
+        }
+        p->pop(p, -1);
+
+        if (WS_SUCCESS(rc)) {
+            rc = js->exec("__rc = null;\n");
+        }
+        return rc;
+    }
+
+    *out = 0;
+    return WERR_RUN_CODE;
+}
+
+/**
+ * Call channels() function in module script.
+ * This will new some catalog objects, and you should delete
+ * them explicitly.
+ * @param id  The id of catalog item.
+ * @param out Pointer to a list to store the result.
+ * @return status code.
+ */
+int Webservice::channels(int id, WSList<channel *> *out) {
+    int rc = 1;
+
+    if (!module_loaded)
+        return WERR_FAILED;
+
+    char entry[2048] = {0};
+
+    int len = snprintf(entry, sizeof(entry),
+            "__rc = wspAPI.channels(%d);\n"
+            "",
+            id);
+    if ((unsigned)len >= sizeof(entry)) {
+        return WERR_BUFFER_OVERFLOW;
+    }
+
+    rc = js->exec(entry);
+
+    if (WS_SUCCESS(rc)) {
+        jscContext *p = js->context();
+
+        js->getGlobal("__rc"); {
+
+            unsigned length = js->getLength(-1);
+
+            for (unsigned i = 0; i < length; i++) {
+                channel *ch = 0;
+
+                /*
+                 * parsing the information of each channel, then
+                 * push then to the list.
+                 */
+                js->getIndex(-1, i); {
+                    rc = channelInner(p, &ch);
+                }
+                p->pop(p, 1);
+
+                if (WS_FAILURE(rc)) continue;
+
+                rc = out->Pushfront(ch);
+                if (WS_FAILURE(rc)) {
+                    break;
+                }
+
+            } // for
+
+        }
+        p->pop(p, 1);
+
+        if (WS_SUCCESS(rc)) {
+            rc = js->exec("_eraseArray(__rc); __rc = [];\n");
+        }
+
+        return rc;
+    }
+    return WERR_RUN_CODE;
+}
+
+/**
+ * Call channelURL() function in module script.
+ * This will new some catalog objects, and you should delete
+ * them explicitly.
+ * @param mid  The Id of source media.
+ * @param out Pointer to the target to store the result.
+ * @return status code.
+ */
+int Webservice::queryChannelURL(int mid, channelURL **out) {
+    int rc = 1;
+
+    if (!module_loaded)
+        return WERR_FAILED;
+
+    char entry[2048] = {0};
+
+    int len = snprintf(entry, sizeof(entry),
+            "__rc = wspAPI.channelURL(%d);\n"
+            "",
+            mid);
+    if ((unsigned)len >= sizeof(entry)) {
+        return WERR_BUFFER_OVERFLOW;
+    }
+
+    rc = js->exec(entry);
+    if (WS_SUCCESS(rc)) {
+        jscContext *p = js->getGlobal("__rc"); {
+            const char *s_url;
+
+            /*
+             * Query the result
+             */
+            js->getProperty(-1, "url"); {
+                s_url = p->tostring(p, -1);
+            }
+            p->pop(p, 1);
+
+            if (!(*out = new (std::nothrow) channelURL(mid, s_url))) {
+                rc = WERR_ALLOC_MEMORY;
+            }
+        }
+        p->pop(p, 1);
+
+        if (WS_SUCCESS(rc)) {
+            rc = js->exec("__rc = null;\n");
+        }
+
+        return rc;
+    }
+    return WERR_RUN_CODE;
+}
+
+
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -628,31 +900,38 @@ static void ws_stream_read(jscContext *p) {
      */
     for (;;) {
       /* get data from stream */
-      len = stream_read(stream, chunk, sizeof(chunk));
+      len = stream_read (stream, chunk, sizeof(chunk));
 
-      if (len<=0) {
-          p->pushstring(p, buff); // RETURN res
-          free(buff);
+      if ( len <= 0 ) {
+          if ( buff ) {
+              p->pushstring (p, buff); // RETURN res
+              free(buff);
+          } else {
+              p->pushundefined (p); // RETURN (undefined)
+          }
           break;
       }
 
-      /* reallocate buffer */
+      /*
+       * reallocate buffer for creasing data
+       */
       total += len;
-      if (bufsize < total) {
+      if ( bufsize < total ) {
           bufsize = total + 256; // a block
-          char *f = buff;
-          buff = (char*)realloc(buff, bufsize);
-          if (!buff) {
+          char *fw = buff;
+          buff = static_cast<char*>(realloc (buff, bufsize));
+          
+          if ( !buff ) {
               /* failed on memory allocating */
-              if (f) free(f);
-              p->pushundefined(p); // RETURN (undefined)
+              if (fw) free (fw);
+              p->pushundefined (p); // RETURN (undefined)
               break;
           }
-          memset(buff + d, 0, bufsize - d);
+          memset (buff + d, 0, bufsize - d);
       }
 
       // copy
-      memcpy(buff + d, chunk, len);
+      memcpy (buff + d, chunk, len);
       d += len;
     } // for
 }
@@ -667,16 +946,16 @@ static void ws_stream_seek(jscContext *p) {
     stream_t *stream = (stream_t*)p->getTag(p, "pstream");
 
     if (!stream ||
-            p->isundefined(p, 1)) {
-        p->pushboolean(p, 0); // RETURN false
+            p->isundefined (p, 1)) {
+        p->pushboolean (p, 0); // RETURN false
         return;
     }
 
-    int pos = p->tointeger(p, 1);
-    if (stream_seek(stream, (off_t)pos))
-        p->pushboolean(p, 1); // RETURN true
+    int pos = p->tointeger (p, 1);
+    if ( stream_seek (stream, (off_t)pos) )
+        p->pushboolean (p, 1); // RETURN true
     else
-        p->pushboolean(p, 0); // RETURN false
+        p->pushboolean (p, 0); // RETURN false
 }
 
 /**
@@ -686,12 +965,12 @@ static void ws_stream_seek(jscContext *p) {
 static void ws_stream_tell(jscContext *p) {
     stream_t *stream = (stream_t*)p->getTag(p, "pstream");
 
-    if (!stream) {
-        p->pushnumber(p, 0); // RETURN 0
+    if ( !stream ) {
+        p->pushnumber (p, 0); // RETURN 0
         return;
     }
 
-    p->pushnumber(p, (double)stream_tell(stream)); // RETURN pos
+    p->pushnumber (p, (double)stream_tell(stream)); // RETURN pos
 }
 
 
@@ -714,32 +993,32 @@ static void ws_util_constructor(jscContext *p) {
  * @return > 0 the time escaped (in us).
  */
 static void ws_util_get_response_time(jscContext *p) {
-    if (p->isundefined(p, 1)) {
-        p->pushnumber(p, 0.0); // RETURN 0.0
+    if ( p->isundefined (p, 1) ) {
+        p->pushnumber (p, 0.0); // RETURN 0.0
         return;
     }
 
-    const char *host = p->tostring(p, 1);
-    int port = p->tointeger(p, 2);
+    const char *host = p->tostring (p, 1);
+    int port = p->tointeger (p, 2);
 
     int fd;
     register unsigned int t0, t1;
     unsigned int dt;
 
     /* connect to the server and time the process */
-    t0 = getTimer();
-    fd = connectServer(host, port, 1);
-    t1 = getTimer();
+    t0 = getTimer ();
+    fd = connectServer (host, port, 1);
+    t1 = getTimer ();
 
     if (!fd) {
-        p->pushnumber(p, 0.0); // RETURN 0.0
+        p->pushnumber (p, 0.0); // RETURN 0.0
         return;
     } else
-        socketClose(fd);
+        socketClose (fd);
 
     dt = t1 - t0;
 
-    p->pushnumber(p, (double)dt); // RETURN dt
+    p->pushnumber (p, (double)dt); // RETURN dt
 }
 
 

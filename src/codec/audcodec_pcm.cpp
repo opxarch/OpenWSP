@@ -21,9 +21,9 @@
 /*******************************************************************************
 *   Header Files                                                               *
 *******************************************************************************/
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
+#include <cstdio>
+#include <cstdlib>
+//#include <unistd.h>
 
 #include <openwsp/misc.h>
 #include <openwsp/audioformat.h>

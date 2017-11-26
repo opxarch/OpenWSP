@@ -243,7 +243,7 @@ static void _OnChildHasFocus(FRAMEWIN_Handle hWin, FRAMEWIN_Obj* pObj, WM_MESSAG
 *
 *       Framewin Callback
 */
-static void _FRAMEWIN_Callback (WM_MESSAGE *pMsg) {
+static void _FRAMEWIN_Callback (WM_MESSAGE *pMsg, void *opaque) {
   FRAMEWIN_Handle hWin = (FRAMEWIN_Handle)(pMsg->hWin);
   FRAMEWIN_Obj* pObj = FRAMEWIN_H2P(hWin);
   GUI_RECT* pRect = (GUI_RECT*)(pMsg->Data.p);
@@ -340,6 +340,7 @@ static void FRAMEWIN__cbClient(WM_MESSAGE* pMsg) {
   WM_HWIN hParent = WM_GetParent(pMsg->hWin);
   FRAMEWIN_Obj* pObj = FRAMEWIN_H2P(hParent);
   WM_CALLBACK* cb = pObj->cb;
+  void *opaque = pObj->opaque;
   switch (pMsg->MsgId) {
   case WM_PAINT:
     if (pObj->Props.ClientColor != GUI_INVALID_COLOR) {
@@ -353,7 +354,7 @@ static void FRAMEWIN__cbClient(WM_MESSAGE* pMsg) {
 	    WM_MESSAGE Msg;
       Msg      = *pMsg;
       Msg.hWin = hWin;
-      (*cb)(&Msg);
+      (*cb)(&Msg, opaque);
     }
     return;
   case WM_SET_FOCUS:
@@ -391,7 +392,7 @@ static void FRAMEWIN__cbClient(WM_MESSAGE* pMsg) {
   /* Call user callback. Note that the user callback gets the handle of the Framewindow itself, NOT the Client. */
   if (cb) {
     pMsg->hWin = hParent;
-    (*cb)(pMsg);
+    (*cb)(pMsg, opaque);
   } else {
     WM_DefaultProc(pMsg);
   }
@@ -505,12 +506,12 @@ void FRAMEWIN__UpdatePositions(FRAMEWIN_Obj* pObj) {
 *       FRAMEWIN_CreateEx
 */
 FRAMEWIN_Handle FRAMEWIN_CreateEx(int x0, int y0, int xsize, int ysize, WM_HWIN hParent,
-                                  int WinFlags, int ExFlags, int Id, const char* pTitle, WM_CALLBACK* cb)
+                                  int WinFlags, int ExFlags, int Id, const char* pTitle, WM_CALLBACK* cb, void *opaque)
 {
   FRAMEWIN_Handle hObj;
   /* Create the window */
   WinFlags |= WM_CF_LATE_CLIP;    /* Always use late clipping since widget is optimized for it. */
-  hObj = WM_CreateWindowAsChild(x0, y0, xsize, ysize, hParent, WinFlags, _FRAMEWIN_Callback,
+  hObj = WM_CreateWindowAsChild(x0, y0, xsize, ysize, hParent, WinFlags, _FRAMEWIN_Callback,0,
                                 sizeof(FRAMEWIN_Obj) - sizeof(WM_Obj));
   if (hObj) {
     FRAMEWIN_Obj* pObj;
@@ -523,6 +524,7 @@ FRAMEWIN_Handle FRAMEWIN_CreateEx(int x0, int y0, int xsize, int ysize, WM_HWIN 
     pObj->Props = FRAMEWIN__DefaultProps;
     pObj->TextAlign      = GUI_TA_LEFT;
     pObj->cb             = cb;
+    pObj->opaque         = opaque;
     pObj->Flags          = ExFlags;
     pObj->hFocussedChild = 0;
     pObj->hMenu          = 0;
@@ -533,7 +535,8 @@ FRAMEWIN_Handle FRAMEWIN_CreateEx(int x0, int y0, int xsize, int ysize, WM_HWIN 
                                            Pos.rClient.y1 - Pos.rClient.y0 +1,
                                            hObj, 
                                            WM_CF_ANCHOR_RIGHT | WM_CF_ANCHOR_LEFT | WM_CF_ANCHOR_TOP | WM_CF_ANCHOR_BOTTOM | WM_CF_SHOW | WM_CF_LATE_CLIP, 
-                                           FRAMEWIN__cbClient, 0);
+                                           FRAMEWIN__cbClient,0,
+                                           0);
     /* Normally we disable memory devices for the frame window:
      * The frame window does not flicker, and not using memory devices is usually faster.
      * You can still use memory by explicitly specifying the flag

@@ -21,8 +21,11 @@
 /*******************************************************************************
  *   Header Files                                                               *
  *******************************************************************************/
-#include <string.h>
+#include <cstring>
 #include <new>
+#include <iconv.h>
+#include <cerrno>
+
 #include <openwsp/err.h>
 #include <openwsp/assert.h>
 #include <openwsp/string.h>
@@ -259,7 +262,7 @@ int booleanToString(bool src, char *buff, int len, int *outlen) {
 int stringDuplicate(const char *src, int len, char **dest) {
     WS_ASSERT(src && dest);
     if (!len)
-        len = strlen(src);
+        len = strlen(src) + 1;
     *dest = new (std::nothrow) char[len];
     if (!*dest)
         return WERR_ALLOC_MEMORY;
@@ -316,6 +319,47 @@ int compareStringNocase(const char *src, const char *dest, int len) {
         ++dest;
     }
     return 0;
+}
+
+void *memcpyLimited(void *dst, const void *src, size_t size, size_t maxsize) {
+    return memcpy(dst, src, size > maxsize ? maxsize : size);
+}
+
+int encodeString(char *src, const char *fromcode, const char *tocode, char *buff, size_t buffsize) {
+    int rc = WINF_SUCCEEDED;
+
+    size_t inlen    = strlen(src);
+    size_t outlen   = buffsize;
+    char *inbuf     = src;
+    char *pout      = buff;
+
+    iconv_t cd = iconv_open(tocode, fromcode);
+    if (cd == (iconv_t)-1)
+        return WERR_INVALID_STR_ENCODING;
+
+    memset(buff, 0, buffsize);
+
+    if (iconv(cd, &inbuf, &inlen, &pout,&outlen) != (size_t)-1) {
+        buff[buffsize - outlen] = 0;
+        rc = WINF_SUCCEEDED;
+    } else {
+        switch(errno) {
+           case E2BIG:
+               rc = WERR_BUFFER_OVERFLOW;
+               break;
+           case EILSEQ:
+               rc = WERR_INVALID_SRC_STR_ENCODING;
+               break;
+           case EINVAL:
+               rc = WERR_INVALID_SRC_STR_ENCODING;
+               break;
+           default:
+               rc = WERR_FAILED;
+        }
+    }
+
+    iconv_close(cd);
+    return rc;
 }
 
 } // namespace openwsp

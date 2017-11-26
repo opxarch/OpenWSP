@@ -1,6 +1,17 @@
 # OpenWSP (developing)
 
-an Open-source Web Stream codec/Player. </br>
+<br> an opensource hardware, providing a Web Stream codec/Player framework for embedded systems. <br/>
+
+These prictures show how WSP runs on a 240x320 LCD platform:
+
+![screen](https://raw.githubusercontent.com/opxarch/privdats/master/OpenWSP/320x240-captured-0.JPG)
+screen-1 Volume Panel<br/>
+![screen](https://raw.githubusercontent.com/opxarch/privdats/master/OpenWSP/320x240-captured-1.JPG)
+screen-2 Radio Categories from the Internet<br/>
+![screen](https://raw.githubusercontent.com/opxarch/privdats/master/OpenWSP/320x240-captured-2.JPG)
+screen-3 Radio Channels<br/>
+![screen](https://raw.githubusercontent.com/opxarch/privdats/master/OpenWSP/320x240-captured-3.JPG)
+screen-4 Audio Playing<br/>
 
 <br/> &emsp;&emsp;It runs on a variet of platforms, such as `GNU Linux`, `OpenWRT`, `DD-WRT` (yet another Linux cored OS) and `Windows`. It is also compatible with MIPS/ARM/PPC/X86/AMD64 or most of the other processor architectures.
 <br/>

@@ -71,10 +71,10 @@ public:
 #define AOPLAY_FINAL_CHUNK 1
 
 /* the volume information */
-typedef struct ao_control_vol_s {
+typedef struct as_control_vol_s {
 	int left;
 	int right;
-} ao_control_vol_t;
+} as_control_vol_t;
 
 void list_audio_out(void);
 IAudioOutput* init_audio_device(const char *name, int rate, int channels, int format, int flags);

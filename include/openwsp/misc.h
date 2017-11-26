@@ -178,6 +178,29 @@
 #define WS_CURRENT_LINE __LINE__
 
 
+
+/** @def DebugBreakPoint
+ * Emit a debug breakpoint instruction.
+ */
+#if COMPILER(GCC)
+# if ARCH(AMD64) || ARCH(X86)
+#  if !defined(__L4ENV__)
+#   define DebugBreakPoint()      __asm__ __volatile__("int $3\n\tnop\n\t")
+#  else
+#   define DebugBreakPoint()      __asm__ __volatile__("int3; jmp 1f; 1:\n\t")
+#  endif
+# elif ARCH(SPARC64)
+#  define DebugBreakPoint()       __asm__ __volatile__("illtrap 0\n\t")   /** @todo Sparc64: this is just a wild guess. */
+# elif ARCH(SPARC)
+#  define DebugBreakPoint()       __asm__ __volatile__("unimp 0\n\t")     /** @todo Sparc: this is just a wild guess (same as Sparc64, just different name). */
+# endif
+#elif COMPILER(MSC)
+# define DebugBreakPoint()        __debugbreak()
+#else
+# error "This compiler/arch is not supported!"
+#endif
+
+
 /** @def NULL
  * Null pointer
  */

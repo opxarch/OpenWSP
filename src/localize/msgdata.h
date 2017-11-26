@@ -107,6 +107,72 @@
 
 /* ======================= Audio system ======================== */
 
+/* audiosys_oss.cpp */
+#define MSGTR_AS_OSS_CantOpenMixer "[AS OSS] audio_setup: Can't open mixer device %s: %s\n"
+#define MSGTR_AS_OSS_ChanNotFound "[AS OSS] audio_setup: Audio card mixer does not have channel '%s', using default.\n"
+#define MSGTR_AS_OSS_CantOpenDev "[AS OSS] audio_setup: Can't open audio device %s: %s\n"
+#define MSGTR_AS_OSS_CantMakeFd "[AS OSS] audio_setup: Can't make file descriptor blocking: %s\n"
+#define MSGTR_AS_OSS_CantSet "[AS OSS] Can't set audio device %s to %s output, trying %s...\n"
+#define MSGTR_AS_OSS_CantSetChans "[AS OSS] audio_setup: Failed to set audio device to %d channels.\n"
+#define MSGTR_AS_OSS_CantUseGetospace "[AS OSS] audio_setup: driver doesn't support SNDCTL_DSP_GETOSPACE :-(\n"
+#define MSGTR_AS_OSS_CantUseSelect "[AS OSS]\n   ***  Your audio driver DOES NOT support select()  ***\n Recompile OpenWSP with #undef HAVE_AUDIO_SELECT in config.h !\n\n"
+#define MSGTR_AS_OSS_CantReopen "[AS OSS]\nFatal error: *** CANNOT RE-OPEN / RESET AUDIO DEVICE *** %s\n"
+#define MSGTR_AS_OSS_UnknownUnsupportedFormat "[AS OSS] Unknown/Unsupported OSS format: %x.\n"
+
+// audiosys_alsa.cpp
+#define MSGTR_AS_ALSA_InvalidMixerIndexDefaultingToZero "[AS ALSA] Invalid mixer index. Defaulting to 0.\n"
+#define MSGTR_AS_ALSA_MixerOpenError "[AS ALSA] Mixer open error: %s\n"
+#define MSGTR_AS_ALSA_MixerAttachError "[AS ALSA] Mixer attach %s error: %s\n"
+#define MSGTR_AS_ALSA_MixerRegisterError "[AS ALSA] Mixer register error: %s\n"
+#define MSGTR_AS_ALSA_MixerLoadError "[AS ALSA] Mixer load error: %s\n"
+#define MSGTR_AS_ALSA_UnableToFindSimpleControl "[AS ALSA] Unable to find simple control '%s',%i.\n"
+#define MSGTR_AS_ALSA_ErrorSettingLeftChannel "[AS ALSA] Error setting left channel, %s\n"
+#define MSGTR_AS_ALSA_ErrorSettingRightChannel "[AS ALSA] Error setting right channel, %s\n"
+#define MSGTR_AS_ALSA_CommandlineHelp "\n[AS ALSA] -ao alsa commandline help:\n"\
+"[AS ALSA] Example: -ao alsa:device=hw=0.3\n"\
+"[AS ALSA]   Sets first card fourth hardware device.\n\n"\
+"[AS ALSA] Options:\n"\
+"[AS ALSA]   noblock\n"\
+"[AS ALSA]     Opens device in non-blocking mode.\n"\
+"[AS ALSA]   device=<device-name>\n"\
+"[AS ALSA]     Sets device (change , to . and : to =)\n"
+#define MSGTR_AS_ALSA_ChannelsNotSupported "[AS ALSA] %d channels are not supported.\n"
+#define MSGTR_AS_ALSA_OpenInNonblockModeFailed "[AS ALSA] Open in nonblock-mode failed, trying to open in block-mode.\n"
+#define MSGTR_AS_ALSA_PlaybackOpenError "[AS ALSA] Playback open error: %s\n"
+#define MSGTR_AS_ALSA_ErrorSetBlockMode "[AL_ALSA] Error setting block-mode %s.\n"
+#define MSGTR_AS_ALSA_UnableToGetInitialParameters "[AS ALSA] Unable to get initial parameters: %s\n"
+#define MSGTR_AS_ALSA_UnableToSetAccessType "[AS ALSA] Unable to set access type: %s\n"
+#define MSGTR_AS_ALSA_FormatNotSupportedByHardware "[AS ALSA] Format %s is not supported by hardware, trying default.\n"
+#define MSGTR_AS_ALSA_UnableToSetFormat "[AS ALSA] Unable to set format: %s\n"
+#define MSGTR_AS_ALSA_UnableToSetChannels "[AS ALSA] Unable to set channels: %s\n"
+#define MSGTR_AS_ALSA_UnableToDisableResampling "[AS ALSA] Unable to disable resampling: %s\n"
+#define MSGTR_AS_ALSA_UnableToSetSamplerate2 "[AS ALSA] Unable to set samplerate-2: %s\n"
+#define MSGTR_AS_ALSA_UnableToSetBufferTimeNear "[AS ALSA] Unable to set buffer time near: %s\n"
+#define MSGTR_AS_ALSA_UnableToSetPeriodTime "[AS ALSA] Unable to set period time: %s\n"
+#define MSGTR_AS_ALSA_BufferTimePeriodTime "[AS ALSA] buffer_time: %d, period_time :%d\n"
+#define MSGTR_AS_ALSA_UnableToGetPeriodSize "[AS ALSA] Unable to get period size: %s\n"
+#define MSGTR_AS_ALSA_UnableToSetPeriodSize "[AS ALSA] Unable to set period size(%ld): %s\n"
+#define MSGTR_AS_ALSA_UnableToSetPeriods "[AS ALSA] Unable to set periods: %s\n"
+#define MSGTR_AS_ALSA_UnableToSetHwParameters "[AS ALSA] Unable to set hw-parameters: %s\n"
+#define MSGTR_AS_ALSA_UnableToGetBufferSize "[AS ALSA] Unable to get buffersize: %s\n"
+#define MSGTR_AS_ALSA_UnableToGetSwParameters "[AS ALSA] Unable to get sw-parameters: %s\n"
+#define MSGTR_AS_ALSA_UnableToSetSwParameters "[AS ALSA] Unable to set sw-parameters: %s\n"
+#define MSGTR_AS_ALSA_UnableToGetBoundary "[AS ALSA] Unable to get boundary: %s\n"
+#define MSGTR_AS_ALSA_UnableToSetStartThreshold "[AS ALSA] Unable to set start threshold: %s\n"
+#define MSGTR_AS_ALSA_UnableToSetStopThreshold "[AS ALSA] Unable to set stop threshold: %s\n"
+#define MSGTR_AS_ALSA_UnableToSetSilenceSize "[AS ALSA] Unable to set silence size: %s\n"
+#define MSGTR_AS_ALSA_PcmCloseError "[AS ALSA] pcm close error: %s\n"
+#define MSGTR_AS_ALSA_NoHandlerDefined "[AS ALSA] No handler defined!\n"
+#define MSGTR_AS_ALSA_PcmPrepareError "[AS ALSA] pcm prepare error: %s\n"
+#define MSGTR_AS_ALSA_PcmPauseError "[AS ALSA] pcm pause error: %s\n"
+#define MSGTR_AS_ALSA_PcmDropError "[AS ALSA] pcm drop error: %s\n"
+#define MSGTR_AS_ALSA_PcmResumeError "[AS ALSA] pcm resume error: %s\n"
+#define MSGTR_AS_ALSA_DeviceConfigurationError "[AS ALSA] Device configuration error."
+#define MSGTR_AS_ALSA_PcmInSuspendModeTryingResume "[AS ALSA] Pcm in suspend mode, trying to resume.\n"
+#define MSGTR_AS_ALSA_WriteError "[AS ALSA] Write error: %s\n"
+#define MSGTR_AS_ALSA_TryingToResetSoundcard "[AS ALSA] Trying to reset soundcard.\n"
+#define MSGTR_AS_ALSA_CannotGetPcmStatus "[AS ALSA] Cannot get pcm status: %s\n"
+
 // audio_sdl.cpp
 #define MSGTR_AS_SDL_INFO "[AS SDL] Samplerate: %iHz Channels: %s Format %s\n"
 #define MSGTR_AS_SDL_DriverInfo "[AS SDL] using %s audio driver.\n"
@@ -126,6 +192,18 @@
 
 #define MSGTR_DEMUX_URL_StringAlreadyEscaped "String appears to be already escaped in url_escape %c%c1%c2\n"
 #define MSGTR_MemAllocFailed "Memory allocation failed.\n"
+
+/* asfheader.cpp */
+
+#define MSGTR_DEMUX_ASFHDR_HeaderSizeOver1MB "FATAL: header size bigger than 1 MB (%d)!\nPlease contact us, and send this file.\n"
+#define MSGTR_DEMUX_ASFHDR_HeaderMallocFailed "Could not allocate %d bytes for header.\n"
+#define MSGTR_DEMUX_ASFHDR_EOFWhileReadingHeader "EOF while reading ASF header, broken/incomplete file?\n"
+#define MSGTR_DEMUX_ASFHDR_DVRWantsLibavformat "DVR will probably only work with libavformat, try -demuxer 35 if you have problems\n"
+#define MSGTR_DEMUX_ASFHDR_NoDataChunkAfterHeader "No data chunk following header!\n"
+#define MSGTR_DEMUX_ASFHDR_AudioVideoHeaderNotFound "ASF: no audio or video headers found - broken file?\n"
+#define MSGTR_DEMUX_ASFHDR_InvalidLengthInASFHeader "Invalid length in ASF header!\n"
+#define MSGTR_DEMUX_ASFHDR_DRMLicenseURL "DRM License URL: %s\n"
+#define MSGTR_DEMUX_ASFHDR_DRMProtected "This file has been encumbered with DRM encryption, it will not play in WSP!\n"
 
 /* cache.cpp */
 

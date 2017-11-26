@@ -41,7 +41,7 @@ None
 extern "C" {     /* Make sure we have C-declarations in C++ programs */
 #endif
 
-WM_HWIN WINDOW_CreateIndirect(const GUI_WIDGET_CREATE_INFO* pCreateInfo, WM_HWIN hWinParent, int x0, int y0, WM_CALLBACK* cb);
+WM_HWIN WINDOW_CreateIndirect(const GUI_WIDGET_CREATE_INFO* pCreateInfo, WM_HWIN hWinParent, int x0, int y0, WM_CALLBACK* cb, void *opaque);
 void    WINDOW_SetDefaultBkColor(GUI_COLOR Color);
 
 #if defined(__cplusplus)

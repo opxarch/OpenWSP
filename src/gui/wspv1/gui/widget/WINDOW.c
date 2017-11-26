@@ -44,6 +44,7 @@ Purpose     : Window routines
 typedef struct {
   WIDGET Widget;
   WM_CALLBACK* cb;
+  void* opaque;
   WM_HWIN hFocussedChild;
   WM_DIALOG_STATUS* pDialogStatus;
 } WINDOW_OBJ;
@@ -86,13 +87,17 @@ static void _OnChildHasFocus(WM_HWIN hWin, WINDOW_OBJ* pObj, const WM_MESSAGE* p
 *
 *       _cb
 */
-static void _cb(WM_MESSAGE* pMsg) {
+static void _cb(WM_MESSAGE* pMsg, void *p) {
+  GUI_USE_PARA(p);
+
   WM_HWIN hObj;
   WINDOW_OBJ* pObj;
   WM_CALLBACK* cb;
+  void* opaque;
   hObj = pMsg->hWin;
   pObj = WINDOW_H2P(hObj);
   cb   = pObj->cb;
+  opaque = pObj->opaque;
   switch (pMsg->MsgId) {
   case WM_HANDLE_DIALOG_STATUS:
     if (pMsg->Data.p) {                           /* set pointer to Dialog status */
@@ -136,7 +141,7 @@ static void _cb(WM_MESSAGE* pMsg) {
     return;                       /* Message handled */
   }  
   if (cb) {
-    (*cb)(pMsg);
+    (*cb)(pMsg, opaque);
   } else {
     WM_DefaultProc(pMsg);
   }
@@ -152,17 +157,18 @@ static void _cb(WM_MESSAGE* pMsg) {
 *
 *       WINDOW_CreateIndirect
 */
-WM_HWIN WINDOW_CreateIndirect(const GUI_WIDGET_CREATE_INFO* pCreateInfo, WM_HWIN hWinParent, int x0, int y0, WM_CALLBACK* cb) {
+WM_HWIN WINDOW_CreateIndirect(const GUI_WIDGET_CREATE_INFO* pCreateInfo, WM_HWIN hWinParent, int x0, int y0, WM_CALLBACK* cb, void *opaque) {
   WM_HWIN hObj;
   hObj = WM_CreateWindowAsChild(
     pCreateInfo->x0 + x0, pCreateInfo->y0 + y0, pCreateInfo->xSize, pCreateInfo->ySize, hWinParent,
-    pCreateInfo->Flags, _cb, sizeof(WINDOW_OBJ) - sizeof(WM_Obj));
+    pCreateInfo->Flags, _cb,0, sizeof(WINDOW_OBJ) - sizeof(WM_Obj));
   if (hObj) {
     WINDOW_OBJ* pObj;
     WM_LOCK();
     pObj = WINDOW_H2P(hObj);
     WIDGET__Init(&pObj->Widget, pCreateInfo->Id, WIDGET_STATE_FOCUSSABLE);
     pObj->cb             = cb;
+    pObj->opaque         = opaque;
     pObj->hFocussedChild = 0;
     WM_UNLOCK();
   }

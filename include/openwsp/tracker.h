@@ -31,7 +31,10 @@ namespace openwsp {
 
 class Locator {
 public:
+    Locator();
     Locator(const char *file, int line, const char *func);
+    Locator(const Locator &src);
+    Locator &operator =(const Locator &src);
 
     /**
      * Get the source filename.
@@ -58,6 +61,9 @@ public:
     }
 
 private:
+    void copy(const Locator &src);
+
+protected:
     const char *m_file;
     int         m_line;
     const char *m_func;
@@ -66,7 +72,7 @@ private:
 /**@def MakeLocater
  * Create a Locater anonymous object, using the compiling-time information.
  */
-#define MakeLocater() Locator(WS_CURRENT_FILE, WS_CURRENT_LINE, WS_CURRENT_FUNCTION)
+#define MakeLocator() Locator(WS_CURRENT_FILE, WS_CURRENT_LINE, WS_CURRENT_FUNCTION)
 
 } // namespace openwsp
 

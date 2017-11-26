@@ -34,8 +34,18 @@ CXX := $(GXX)
 DEFS += IN_RING3
 CFLAGS += -O1 -Wall -Wstrict-prototypes -Wno-unused-variable
 CXXFLAGS += -O1 -Wall -Wno-unused-variable
-LDFLAGS += -Wl,-subsystem,console -lstdc++
+LDFLAGS += -lstdc++
 ARFLAGS +=
+
+ifeq ($(CONFIG_TARGET_OS),win32)
+LDFLAGS += -Wl,-subsystem,console
+endif
+
+ifeq ($(CONFIG_MAK_TYPE),debug)
+CFLAGS += -g
+CXXFLAGS += -g
+LDFLAGS += -g
+endif
 
 CFLAGS   += $(addprefix -I, $(CINCS) $(CXXINCS) $(INCS)) $(addprefix -D, $(DEFS))
 CXXFLAGS += $(addprefix -I, $(CINCS) $(CXXINCS) $(INCS)) $(addprefix -D, $(DEFS))

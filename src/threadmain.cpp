@@ -18,12 +18,12 @@
  *  Lesser General Public License for more details.
  */
 
-/*******************************************************************************
-*   Header Files                                                               *
-*******************************************************************************/
 #include <openwsp/thread.h>
 #include <openwsp/err.h>
 
+#include "audiosys/audiosystem.h"
+
+#include "gc.h"
 #include "openwsp.h"
 #include "threads.h"
 
@@ -31,29 +31,38 @@
 
 namespace openwsp {
 
-MainThread::MainThread() {
+ThreadMain::ThreadMain()
+    : event(this),
+      m_gc(new GC)
+{
 }
-MainThread::~MainThread() {
+ThreadMain::~ThreadMain() {
+    delete m_gc;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 
-int MainThread::init(Openwsp *app) {
+int ThreadMain::init(void *opaque) {
     int rc;
-    rc = create(app);
+    rc = this->WSThread::create(opaque);
     return rc;
 }
 
-int MainThread::uninit() {
+int ThreadMain::uninit() {
     return WINF_SUCCEEDED;
 }
+
+
+/////////////////////////////////////////////////////////////////////
+
+// Begin event looping
 
 /**
  * Entry of I/O thread context.
  * @param opaque pointer data.
  * @return status code.
  */
-int MainThread::run(void *opaque) {
+int ThreadMain::run(void *opaque) {
     int rc;
     WSEvent *event;
 
@@ -61,25 +70,60 @@ int MainThread::run(void *opaque) {
         /*
          Process the main events
          */
-        rc = eventPump.pop(&event);
+        rc = this->EventPump().pop(&event);
         if (WS_SUCCESS(rc)) {
-
-            event->run(opaque);
-            delete event;
+            event->run(this);
+            event->release(MakeLocator());
         }
 
         /*
          Process the UI events
          */
-        Openwsp *frame = static_cast<Openwsp*>(opaque);
-        rc = frame->idle();
+        rc = app().idle();
         if (WS_FAILURE(rc) ||
                 (rc == WINF_TERMINATED)) {
             return rc;
         }
+
+        this->onScanGC();
     }
 
     return WINF_SUCCEEDED;
+}
+
+// End event looping
+
+/////////////////////////////////////////////////////////////////////
+
+
+/////////////////////////////////////////////////////////////////////
+// for Main Thread context only
+////////////////////////////////////////////////////////////////////
+
+int ThreadMain::onInsertGC(GCTarget *src) {
+    AssertThread(THREAD_MAIN);
+    return m_gc->addRegistry(src);
+}
+
+void ThreadMain::onScanGC() {
+    AssertThread(THREAD_MAIN);
+    m_gc->scan();
+}
+
+/////////////////////////////////////////////////////////////////////
+
+int ThreadMain::onLoadMedia(const std::string &url) {
+    app().threadLoop().PostEvent(
+            THREAD_AUDIO,
+            event.bind(&ThreadMain::eventRunAudioProcess, url));
+    return 1;
+}
+
+// THREAD_AUDIO
+
+int ThreadMain::eventRunAudioProcess(ThreadBase *thread, std::string url) {
+    app().threadAudio().onLoadAudio(url.c_str());
+    return 1;
 }
 
 } // namespace openwsp

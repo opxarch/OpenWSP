@@ -23,9 +23,10 @@
 *******************************************************************************/
 #include <stdio.h>
 #include <stdlib.h>
-#include <unistd.h>
+//#include <unistd.h>
 #include <string.h>
 
+#include <openwsp/types.h>
 #include <openwsp/misc.h>
 #include "stream.h"
 

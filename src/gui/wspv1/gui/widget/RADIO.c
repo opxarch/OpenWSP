@@ -266,7 +266,7 @@ static void  _OnKey(RADIO_Handle hObj, WM_MESSAGE* pMsg) {
 *
 *       _RADIO_Callback
 */
-static void _RADIO_Callback (WM_MESSAGE* pMsg) {
+static void _RADIO_Callback (WM_MESSAGE* pMsg, void *opaque) {
   RADIO_Handle hObj;
   RADIO_Obj*   pObj;
   hObj = pMsg->hWin;
@@ -350,7 +350,7 @@ RADIO_Handle RADIO_CreateEx(int x0, int y0, int xSize, int ySize, WM_HWIN hParen
   WinFlags |= WM_CF_HASTRANS;
 #endif
   /* Create the window */
-  hObj = WM_CreateWindowAsChild(x0, y0, xSize, ySize, hParent, WinFlags, _RADIO_Callback, sizeof(RADIO_Obj) - sizeof(WM_Obj));
+  hObj = WM_CreateWindowAsChild(x0, y0, xSize, ySize, hParent, WinFlags, _RADIO_Callback,0, sizeof(RADIO_Obj) - sizeof(WM_Obj));
   if (hObj) {
     RADIO_Obj* pObj;
     WM_LOCK();

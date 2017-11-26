@@ -33,14 +33,15 @@ Purpose     : Windows manager, add. module
 *
 *       WM_SetCallback
 */
-WM_CALLBACK* WM_SetCallback (WM_HWIN hWin, WM_CALLBACK* cb) {
+WM_CALLBACK* WM_SetCallback (WM_HWIN hWin, WM_CALLBACK* cb, void *opaque) {
   WM_CALLBACK* r = NULL;  
   if (hWin) {
     WM_Obj* pWin;
     WM_LOCK();
     pWin = WM_H2P(hWin);
     r = pWin->cb;
-    pWin->cb = cb; 
+    pWin->cb = cb;
+    pWin->opaque = opaque;
     WM_InvalidateWindow(hWin);
     WM_UNLOCK();
   }

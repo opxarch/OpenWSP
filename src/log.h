@@ -108,6 +108,7 @@ public:
     ws_log(log::level level);
     ws_log(log::module module);
     ws_log(log::module module, log::level level);
+    ~ws_log();
 
 #if 0
 #define LOG_FMT(fmt, val) do { write(m_module, m_level, fmt, val); } while(0)

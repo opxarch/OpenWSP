@@ -74,6 +74,7 @@ typedef struct {
   WIDGET Widget;
   GUI_ARRAY ItemArray;
   WIDGET_DRAW_ITEM_FUNC* pfDrawItem;
+  void *drawItemOpaque;
   WM_SCROLL_STATE ScrollStateV;
   WM_SCROLL_STATE ScrollStateH;
   LISTBOX_PROPS Props;

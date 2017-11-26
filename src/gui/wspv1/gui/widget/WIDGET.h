@@ -80,6 +80,7 @@ extern "C" {     /* Make sure we have C-declarations in C++ programs */
 
 typedef struct {
   WM_HWIN hWin;
+  void   *opaque;
   int     Cmd;         /* WIDGET_ITEM_GET_XSIZE, WIDGET_ITEM_GET_YSIZE, WIDGET_ITEM_DRAW, */
   int     ItemIndex;
   int     x0, y0;

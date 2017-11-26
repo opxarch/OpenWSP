@@ -26,8 +26,11 @@
 #include <cstdarg>
 #include <cstring>
 
+#include <pthread.h>
+
 #include <openwsp/misc.h>
 #include <openwsp/tracker.h>
+#include <openwsp/thread.h>
 
 #ifdef USE_ICONV
 #include <iconv.h>
@@ -57,7 +60,7 @@ struct module_descor {
 /*******************************************************************************
 *   Global Variables                                                           *
 *******************************************************************************/
-static bool log_inited = false;
+static volatile bool log_inited = false;
 static int log_levels[log::M_MAX]; // verbose level of this module. inited to -2
 static int log_level_all = log::STATUS;
 static int verbose = 0;
@@ -66,6 +69,7 @@ static char *ws_msg_charset = NULL;
 static char *old_charset = NULL;
 static iconv_t msgiconv;
 #endif
+static WSMutex *log_mutex = 0;
 
 static module_descor mod_text[log::M_MAX]= {
     {0,                 "DEFAULT"},
@@ -113,6 +117,10 @@ ws_log::ws_log(log::module module, log::level level) {
     constructor(module, level);
 }
 
+ws_log::~ws_log() {
+    log_mutex->release();
+}
+
 /**
  * Inner, used by log constructor function.
  * @param mod       Module id. See enum module in namespace log.
@@ -127,6 +135,11 @@ void ws_log::constructor(log::module module, log::level level) {
      Resolve the output stream.
      */
     m_stream = (m_level) <= log::WARN ? stderr : stdout;
+
+    if (!log_inited)
+        log_init(); // lazy-init
+
+    log_mutex->acquire();
 
     loghead(m_module, m_level);
 }
@@ -198,6 +211,8 @@ const ws_log& ws_log::operator<<(const ws_log& (*__pf)(const ws_log&, endlog_p))
  * initiate the global data of logger.
  */
 static void log_init() {
+    log_inited = true;
+
     int i;
     char *env = getenv("OPENWSP_VERBOSE");
     if (env)
@@ -211,6 +226,7 @@ static void log_init() {
     if (!ws_msg_charset)
       ws_msg_charset = get_term_charset();
 #endif
+    log_mutex = new WSMutex();
 }
 
 
@@ -221,7 +237,7 @@ bool ws_log::testLevel(log::module mod, log::level lev) {
     return lev <= (log_levels[mod] == -2 ? log_level_all + verbose : log_levels[mod]);
 }
 
-/* static */
+/* static, lock required */
 void ws_log::loghead(log::module mod, log::level lev) {
     FILE *stream= (lev) <= log::WARN ? stderr : stdout;
     fprintf(stream, "[%9s] ", mod_text[mod].modname);
@@ -339,6 +355,7 @@ void ws_log::writeInner(log::module mod, log::level lev, bool head, const char *
 #endif
 
     // log head
+
     if (head)
         loghead(mod, lev);
 
@@ -366,6 +383,7 @@ void ws_log::writeInner(log::module mod, log::level lev, bool head, const char *
     unsigned offset = 0;
     unsigned lead = 0;
     unsigned len = 0;
+
     for (unsigned i = 0; i<ubound+1; i++) {
         if (tmp[i] != '\n' &&
             tmp[i]) {

@@ -482,10 +482,11 @@ static void _OnTouch(MULTIPAGE_Handle hObj, MULTIPAGE_Obj* pObj, WM_MESSAGE*pMsg
         y += WM_GetWindowOrgY(hObj);
         hBelow = WM_Screen2hWinEx(hObj, x, y);
         if (hBelow) {
+          WM_Obj *pWMObj = WM_H2P(hBelow); // fixme?
           pState->x = x - WM_GetWindowOrgX(hBelow);
           pState->y = y - WM_GetWindowOrgY(hBelow);
           pMsg->hWin = hBelow;
-          (*WM_H2P(hBelow)->cb)(pMsg);
+          (*pWMObj->cb)(pMsg, pWMObj->opaque);
         }
       } else {
         WM_BringToTop(hObj);
@@ -504,7 +505,7 @@ static void _OnTouch(MULTIPAGE_Handle hObj, MULTIPAGE_Obj* pObj, WM_MESSAGE*pMsg
 *
 *       _Callback
 */
-static void _Callback (WM_MESSAGE *pMsg) {
+static void _Callback (WM_MESSAGE *pMsg, void *opaque) {
   MULTIPAGE_Handle hObj = pMsg->hWin;
   MULTIPAGE_Obj* pObj;
   int Handled;
@@ -597,7 +598,7 @@ MULTIPAGE_Handle MULTIPAGE_CreateEx(int x0, int y0, int xsize, int ysize, WM_HWI
   MULTIPAGE_Handle hObj;
   GUI_USE_PARA(ExFlags);
   /* Create the window */
-  hObj = WM_CreateWindowAsChild(x0, y0, xsize, ysize, hParent, WinFlags | WM_CF_HASTRANS, &_Callback,
+  hObj = WM_CreateWindowAsChild(x0, y0, xsize, ysize, hParent, WinFlags | WM_CF_HASTRANS, &_Callback,0,
                                 sizeof(MULTIPAGE_Obj) - sizeof(WM_Obj));
   if (hObj) {
     MULTIPAGE_Obj* pObj;
@@ -625,7 +626,7 @@ MULTIPAGE_Handle MULTIPAGE_CreateEx(int x0, int y0, int xsize, int ysize, WM_HWI
     pObj->hClient = WM_CreateWindowAsChild(rClient.x0, rClient.y0,
                                            rClient.x1 - rClient.x0 + 1,
                                            rClient.y1 - rClient.y0 + 1,
-                                           hObj, Flags, &_ClientCallback, 0);
+                                           hObj, Flags, &_ClientCallback,0, 0);
     _UpdatePositions(hObj, pObj);
     WM_UNLOCK();
   } else {

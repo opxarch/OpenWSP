@@ -117,7 +117,7 @@ public:
      * Go to the next element in the list.
      * @return status code
      */
-    int Next() {
+    int tonext() {
         if (cur) {
             cur = cur->next;
             return WINF_SUCCEEDED;
@@ -126,7 +126,7 @@ public:
     }
 
     WSList<listT>& operator++(int) {
-        Next();
+        tonext();
         return *this;
     }
 
@@ -134,7 +134,7 @@ public:
      * Go to the previous element in the list.
      * @return status code
      */
-    int Prev() {
+    int toprev() {
         if (cur) {
             cur = cur->prev;
             return WINF_SUCCEEDED;
@@ -143,7 +143,7 @@ public:
     }
 
     WSList<listT>& operator--(int) {
-        Prev();
+        toprev();
         return *this;
     }
 

@@ -47,7 +47,7 @@ typedef WM_HMEM HEADER_Handle;
 */
 
 HEADER_Handle HEADER_Create        (int x0, int y0, int xsize, int ysize, WM_HWIN hParent, int Id, int Flags, int SpecialFlags);
-HEADER_Handle HEADER_CreateIndirect(const GUI_WIDGET_CREATE_INFO * pCreateInfo, WM_HWIN hWinParent, int x0, int y0, WM_CALLBACK * cb);
+HEADER_Handle HEADER_CreateIndirect(const GUI_WIDGET_CREATE_INFO * pCreateInfo, WM_HWIN hWinParent, int x0, int y0, WM_CALLBACK * cb, void *opaque);
 HEADER_Handle HEADER_CreateAttached(WM_HWIN hParent, int Id, int SpecialFlags);
 HEADER_Handle HEADER_CreateEx      (int x0, int y0, int xsize, int ysize, WM_HWIN hParent,
                                     int WinFlags, int ExFlags, int Id);

@@ -18,7 +18,7 @@
  *  Lesser General Public License for more details.
  */
 
-#include <assert.h>
+#include <cassert>
 
 #include <openwsp/misc.h>
 #include <openwsp/types.h>
@@ -43,6 +43,6 @@ void wpAssertFailure(const char* file, int line, const char* func, const char*ex
  * @param   format    Printf like format string.
  * @param   ...       Arguments to that string.
  */
-void wpAssertFailureMsg(const char* format,...) {
+void wpAssertFailureLog(const char* format,...) {
 
 }

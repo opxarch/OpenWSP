@@ -29,6 +29,10 @@ Purpose     : Implementation of menu widget
 
 #if GUI_WINSUPPORT
 
+#ifndef NULL
+# define NULL ((void*)0)
+#endif
+
 /*********************************************************************
 *
 *       Private config defaults
@@ -932,7 +936,7 @@ static void _OnPaint(MENU_Handle hObj, MENU_Obj* pObj) {
 *
 *       _MENU_Callback
 */
-static void _MENU_Callback(WM_MESSAGE* pMsg) {
+static void _MENU_Callback(WM_MESSAGE* pMsg, void *opaque) {
   MENU_Handle hObj;
   MENU_Obj* pObj;
   hObj = pMsg->hWin;
@@ -982,7 +986,7 @@ static void _MENU_Callback(WM_MESSAGE* pMsg) {
 MENU_Handle MENU_CreateEx(int x0, int y0, int xSize, int ySize, WM_HWIN hParent, int WinFlags, int ExFlags, int Id) {
   MENU_Handle hObj;
   /* Create the window */
-  hObj = WM_CreateWindowAsChild(x0, y0, xSize, ySize, hParent, WM_CF_SHOW | WM_CF_STAYONTOP | WinFlags, &_MENU_Callback,
+  hObj = WM_CreateWindowAsChild(x0, y0, xSize, ySize, hParent, WM_CF_SHOW | WM_CF_STAYONTOP | WinFlags, &_MENU_Callback,0,
                                 sizeof(MENU_Obj) - sizeof(WM_Obj));
   if (hObj) {
     MENU_Obj* pObj;

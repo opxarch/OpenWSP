@@ -48,6 +48,7 @@ typedef struct {
   WIDGET Widget;
   FRAMEWIN_PROPS Props;
   WM_CALLBACK* cb;
+  void* opaque;
   WM_HWIN hClient;
   WM_HWIN hMenu;
   WM_HWIN hText;

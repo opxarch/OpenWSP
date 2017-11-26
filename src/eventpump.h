@@ -22,8 +22,11 @@
 #define OPENWSP_EVENTPUMP_H_
 
 #include <openwsp/thread.h>
+#include <openwsp/autoptr.h>
 
 namespace openwsp {
+
+class ThreadBase;
 
 /**
  * Event priority
@@ -32,23 +35,41 @@ enum EventPriority {
     EVENT_PRI_NORMAL = 0,
     EVENT_PRI_1,
     EVENT_PRI_2,
-    EVENT_PRI_MAX
+    EVENT_PRI_MAX // reserved
 };
+
+typedef char EventSignal_t;
 
 /***************************************************
   *****           Event object                 *****
   ***************************************************/
 
-class WSEvent {
+class WSEvent : public RefCounted<WSEvent> {
 public:
     WSEvent();
     virtual ~WSEvent();
 
-    virtual int run(void *ptr)=0;
+    virtual int run(ThreadBase *ptr)=0;
+
+    inline void cancel() {
+        m_canceled_sig = 1;
+    }
 
 public:
     WSEvent *prev;
     WSEvent *next;
+
+protected:
+    inline bool cancelSignal() {
+        return m_canceled_sig;
+    }
+
+    inline const volatile EventSignal_t *cancelSignalPtr() {
+        return &m_canceled_sig;
+    }
+
+private:
+    volatile EventSignal_t m_canceled_sig;
 };
 
 
@@ -61,13 +82,17 @@ public:
     WSEventPump();
     ~WSEventPump();
 
+    int cancelEvents();
+    int cancelEvents(WSEvent *resp);
+    int cancelEvents(EventPriority pri, WSEvent *resp);
+
     int push(WSEvent *event);
     int push(EventPriority pri, WSEvent *event);
     int pop(WSEvent **out);
 
 private:
     WSEvent     *root[EVENT_PRI_MAX];
-    WSSpinLock  spin[EVENT_PRI_MAX];
+    WSSpinLock   spin[EVENT_PRI_MAX];
 };
 
 

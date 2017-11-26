@@ -73,11 +73,11 @@ typedef WM_HMEM FRAMEWIN_Handle;
 *
 **********************************************************************
 */
-FRAMEWIN_Handle FRAMEWIN_Create        (const char* pTitle, WM_CALLBACK* cb, int Flags, int x0, int y0, int xsize, int ysize);
-FRAMEWIN_Handle FRAMEWIN_CreateAsChild (int x0, int y0, int xsize, int ysize, WM_HWIN hParent, const char* pText, WM_CALLBACK* cb, int Flags);
-FRAMEWIN_Handle FRAMEWIN_CreateIndirect(const GUI_WIDGET_CREATE_INFO* pCreateInfo, WM_HWIN hWinParent, int x0, int y0, WM_CALLBACK* cb);
+FRAMEWIN_Handle FRAMEWIN_Create        (const char* pTitle, WM_CALLBACK* cb, void *opaque, int Flags, int x0, int y0, int xsize, int ysize);
+FRAMEWIN_Handle FRAMEWIN_CreateAsChild (int x0, int y0, int xsize, int ysize, WM_HWIN hParent, const char* pText, WM_CALLBACK* cb, void *opaque, int Flags);
+FRAMEWIN_Handle FRAMEWIN_CreateIndirect(const GUI_WIDGET_CREATE_INFO* pCreateInfo, WM_HWIN hWinParent, int x0, int y0, WM_CALLBACK* cb, void *opaque);
 FRAMEWIN_Handle FRAMEWIN_CreateEx      (int x0, int y0, int xsize, int ysize, WM_HWIN hParent,
-                                        int WinFlags, int ExFlags, int Id, const char* pTitle, WM_CALLBACK* cb);
+                                        int WinFlags, int ExFlags, int Id, const char* pTitle, WM_CALLBACK* cb, void *opaque);
 
 /*********************************************************************
 *

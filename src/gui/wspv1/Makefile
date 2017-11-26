@@ -624,6 +624,8 @@ COMMON-OBJS := gui/wm/WM.c.o \
         gui/font/FD60x80.c.o \
         gui/font/FD64.c.o \
         gui/font/FD80.c.o \
+        gui/font/FTahoma12.c.o \
+        gui/font/FTahoma12B.c.o \
         gui/jpeg/GUI_JPEG.c.o \
         gui/jpeg/jcomapi.c.o \
         gui/jpeg/jdapimin.c.o \
@@ -680,18 +682,29 @@ COMMON-OBJS := gui/wm/WM.c.o \
         gui/memDev/GUIDEV_WriteEx.c.o \
         gui/memDev/GUIDEV_XY2PTR.c.o
 
-OBJS := $(COMMON-OBJS)
-
-OBJS += logics.cpp.o
-
 ifeq ($(CONFIG_TARGET_OS),win32)
-OBJS += win32/GUI_X_Sim.c.o		\
+COMMON-OBJS += win32/GUI_X_Sim.c.o		\
 		win32/LCD_X_Sim.c.o		\
 		win32/LCDSIM.c.o		\
 		win32/SIM_X.c.o			\
 		win32/win32.c.o		\
 		
 endif
+
+#OBJS := $(COMMON-OBJS)
+OBJS := bitmaps/ListitemSelected.c.o		\
+		bitmaps/ListitemUnselected.c.o		\
+		bitmaps/TitleboxIcon.c.o			\
+		bitmaps/VolumeIcon.c.o				\
+
+OBJS += logics.cpp.o						\
+		widgettitlebox.cpp.o				\
+		volumedlg.cpp.o						\
+		catalogdlg.cpp.o					\
+		channelsdlg.cpp.o					\
+		maindlg.cpp.o						\
+
+
 
 #
 # Include dirs
@@ -712,7 +725,10 @@ INCS += gui/memDev
 include $(SUB_DEPTH)/rules.generic.mk
 
 
-gui: gui.$(.LIB)
+gui: guilib.$(.LIB) gui.$(.LIB)
+
+
+guilib.$(.LIB): $(COMMON-OBJS)
 
 gui.$(.LIB): $(OBJS)
 

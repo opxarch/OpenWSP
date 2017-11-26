@@ -122,6 +122,7 @@ static int _CallOwnerDraw(LISTBOX_Handle hObj, const LISTBOX_Obj* pObj, int Cmd,
   int r;
   ItemInfo.Cmd       = Cmd;
   ItemInfo.hWin      = hObj;
+  ItemInfo.opaque    = pObj->drawItemOpaque;
   ItemInfo.ItemIndex = ItemIndex;
   if (pObj->pfDrawItem) {
     r = pObj->pfDrawItem(&ItemInfo);
@@ -630,6 +631,7 @@ static void _OnPaint(LISTBOX_Handle hObj, LISTBOX_Obj* pObj, WM_MESSAGE* pMsg) {
   /* Fill item info structure */
   ItemInfo.Cmd  = WIDGET_ITEM_DRAW;
   ItemInfo.hWin = hObj;
+  ItemInfo.opaque = pObj->drawItemOpaque;
   ItemInfo.x0   = RectInside.x0 - pObj->ScrollStateH.v;
   ItemInfo.y0   = RectInside.y0;
   /* Do the drawing */
@@ -748,7 +750,7 @@ static int _OnMouseOver(LISTBOX_Handle hObj, LISTBOX_Obj* pObj, WM_MESSAGE* pMsg
 *
 *       _LISTBOX_Callback
 */
-static void _LISTBOX_Callback(WM_MESSAGE*pMsg) {
+static void _LISTBOX_Callback(WM_MESSAGE*pMsg, void *opaque) {
   LISTBOX_Handle hObj = pMsg->hWin;
   LISTBOX_Obj* pObj = LISTBOX_H2P(hObj);
   WM_SCROLL_STATE ScrollState;
@@ -917,7 +919,7 @@ LISTBOX_Handle LISTBOX_CreateEx(int x0, int y0, int xsize, int ysize, WM_HWIN hP
 {
   LISTBOX_Handle hObj;
   GUI_USE_PARA(ExFlags);
-  hObj = WM_CreateWindowAsChild(x0, y0, xsize, ysize, hParent, WinFlags, _LISTBOX_Callback,
+  hObj = WM_CreateWindowAsChild(x0, y0, xsize, ysize, hParent, WinFlags, _LISTBOX_Callback,0,
                                 sizeof(LISTBOX_Obj) - sizeof(WM_Obj));
   if (hObj) {
     LISTBOX_Obj* pObj;

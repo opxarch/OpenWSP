@@ -63,7 +63,7 @@ Purpose     : Implementation of Mesagebox
 *
 *       _MESSAGEBOX_cbCallback
 */
-static void _MESSAGEBOX_cbCallback(WM_MESSAGE * pMsg) {
+static void _MESSAGEBOX_cbCallback(WM_MESSAGE * pMsg, void *opaque) {
   WM_HWIN hWin = pMsg->hWin;
   switch (pMsg->MsgId) {
     case WM_INIT_DIALOG:
@@ -185,7 +185,7 @@ WM_HWIN MESSAGEBOX_Create(const char * sMessage, const char * sCaption, int Flag
   _aDialogCreate[2].xSize            = MESSAGEBOX_XSIZEOK;
   _aDialogCreate[2].ySize            = MESSAGEBOX_YSIZEOK;
   /* Create dialog */
-  return GUI_CreateDialogBox(_aDialogCreate, GUI_COUNTOF(_aDialogCreate), _MESSAGEBOX_cbCallback, 0, 0, 0);
+  return GUI_CreateDialogBox(_aDialogCreate, GUI_COUNTOF(_aDialogCreate), _MESSAGEBOX_cbCallback,0, 0, 0, 0);
 }
 
 /*********************************************************************

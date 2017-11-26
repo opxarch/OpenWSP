@@ -29,6 +29,7 @@
 #define __STDC_FORMAT_MACROS
 #include <inttypes.h>
 
+#include <openwsp/types.h>
 #include <openwsp/misc.h>
 
 #include "../log.h"

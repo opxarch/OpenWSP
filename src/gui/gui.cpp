@@ -24,7 +24,7 @@
 #include <openwsp/misc.h>
 #include "gui.h"
 
-namespace openwsp {
+namespace gui {
 
 /*******************************************************************************
 *   Imported Functions                                                               *

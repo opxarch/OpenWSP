@@ -38,15 +38,19 @@ namespace openwsp {
 #if USES(SDL_AUDIO)
 extern IAudioOutput *audio_out_sdl;
 #endif
+#if USES(DSOUND_AUDIO)
 extern IAudioOutput *audio_out_dsound;
+#endif
 extern IAudioOutput *audio_out_null;
 
 IAudioOutput* audio_out_drivers[] = {
 #if USES(SDL_AUDIO)
     audio_out_sdl,
 #endif
+#if USES(DSOUND_AUDIO)
     audio_out_dsound,
-    audio_out_null,
+#endif
+    //audio_out_null,
     NULL
 };
 

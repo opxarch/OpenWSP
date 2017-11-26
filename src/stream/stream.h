@@ -21,6 +21,7 @@
 #include <unistd.h>
 #include <inttypes.h>
 #include <sys/types.h>
+#include <openwsp/types.h>
 
 #include "../log.h"
 #include "network.h"

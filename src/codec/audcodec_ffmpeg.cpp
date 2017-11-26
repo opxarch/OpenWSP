@@ -21,9 +21,10 @@
 /*******************************************************************************
 *   Header Files                                                               *
 *******************************************************************************/
-#include <stdio.h>
-#include <string.h>
+#include <cstdio>
+#include <cstring>
 #include <inttypes.h>
+#include <openwsp/types.h>
 
 extern "C" {
 #include "libavcodec/avcodec.h"

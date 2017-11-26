@@ -34,31 +34,31 @@ register(
     "2017.07.09"
 );
 
+/*******************************************************************************
+*   Internal Global Variables                                                  *
+*******************************************************************************/
+
 // servers
 var api = {
-    host: 'http://api2.qingting.fm',
-    domains: '/v6/media/mediacenterlist',
-    categories: '/v6/media/categories'
+    host:       'http://api2.qingting.fm',
+    domains:    '/v6/media/mediacenterlist',
+    categories: '/v6/media/categories/5',
+    channels:   '/v6/media/categories/5/channels',
+    channel:    '/v6/media/channellives'
 };
 
 // internals
 var audio_stream_host;
 var audio_stream_access;
 var audio_stream_replay;
+var audio_stream_bitrate;
+var device_id;
 
 var util = new OpenWSP.util();
 var debug = new OpenWSP.debug();
 
-/**
- * Request the data through HTTP.
- * @param url Uniform Resoure Locator string.
- */
-function request(url) {
-    var file = new OpenWSP.stream(url);
-    var buff = file.read();
-    file = null;
-    return buff;
-}
+
+////////////////////////////////////////////////////////////////////////////////
 
  
 /**
@@ -72,6 +72,11 @@ var wspAPI = {
      */
     connect: function() {
         var code = request(api.host + api.domains);
+        if (code == void 0) {
+            debug.error("catalogs(): connect to the server.");
+            return;
+        }
+        
         var json = JSON.parse(code);
         
         var rs = json.data.radiostations_http.mediacenters;
@@ -103,6 +108,10 @@ var wspAPI = {
                 audio_stream_host = rs[i].domain;
                 audio_stream_access = rs[i].access;
                 audio_stream_replay = rs[i].replay;
+                audio_stream_bitrate = rs[i].bitrate;
+                if (audio_stream_bitrate == void 0) {
+                    audio_stream_bitrate = 64; // default
+                }
             }
             
             debug.print("host: " + tst_url);
@@ -117,6 +126,13 @@ var wspAPI = {
             return false;
         }
         
+        /* add the default protocol field */
+        if (audio_stream_host.indexOf('://') == -1) {
+            audio_stream_host = 'http://' + audio_stream_host;
+        }
+        
+        device_id = 10000 * Math.random();
+        
         debug.print("server resolved: " + audio_stream_host);
         
         return true;
@@ -128,6 +144,11 @@ var wspAPI = {
      */
     catalogs: function() {
         var code = request(api.host + api.categories);
+        if (code == void 0) {
+            debug.error("catalogs(): connect to the server.");
+            return;
+        }
+        
         var json = JSON.parse(code);
         
         var catas = json.data;
@@ -136,27 +157,114 @@ var wspAPI = {
         if ((catas == void 0) ||
             (catas[0].name == void 0) ||
             (catas[0].id == void 0) ) {
-            debug.error("catalogs(): parsing the data.")
+            debug.error("catalogs(): parsing the data.");
             return;
         }
         
-        var res = [];
+        var res = new Array();
         
         for (var i=0; i<catas_count; i++) {
-            res[i] = new Object();
-            res[i].name = catas[i].name;
-            res[i].id = catas[i].id;
+            var subs_count = catas[i].values.length
+            
+            /* resolve the sub categories */
+            for (var j=0; j<subs_count; j++) {
+                var dst = new Object();
+                
+                dst.name = catas[i].values[j].name;
+                dst.desc = "unknown";
+                dst.catalog = catas[i].name;
+                dst.id = catas[i].values[j].id;
+                
+                res.push(dst);
+            }
         }
         
         return res;
     },
     
-    channels: function() {
+    /**
+     * Get the radio channels in the catalog.
+     * @return a array of channels if succeeded.
+     */
+    channels: function(id) {
         
+        var res = new Array();
+        
+        var page = 1;
+        
+        do {
+            var parms = '/order/0/attr/' + id + '/curpage/' + page + '/pagesize/30';
+            var code = request(api.host + api.channels + parms);
+            if (code == void 0) {
+                debug.print("catalogs(): connect to the server.");
+                break;
+            }
+            
+            var json = JSON.parse(code);
+            var data = json.data;
+            var count = data.length;
+            
+            if (count) {
+                /*
+                 * traveling each channel nodes, parsing data and push then
+                 * to the list.
+                 */
+                for (var i=0; i<count; i++) {
+                    var dst = inner_channel_info__(data[i]);
+                    if (dst != void 0) {
+                        res.push(dst);
+                    }
+                }
+                
+            } else {
+                /* we have reached at the end */
+                break;
+            }
+            
+            page++;
+            
+        } while(1);
+        
+        return res;
+    },
+    
+    /**
+     * Get the infomation of a radio channel.
+     * @return a array of catalogs if succeeded.
+     */
+    channel: function(id) {
+        var code = request(api.host + api.channel + '/' + id);
+        if (code == void 0) {
+            debug.error("catalogs(): connect to the server.");
+            return;
+        }
+        
+        var json = JSON.parse(code);
+        var data = json.data;
+        
+        var rs = inner_channel_info__(data);
+        if (rs == void 0) {
+            debug.error('failed on channel(): parsing.');
+        }
+        return rs;
     },
     
     programs: function() {
         
+    },
+    
+    channelURL: function(id) {
+        var res = new Object();
+        
+        var locator = audio_stream_access;
+        locator = locator.replace('${res_id}', id);
+        locator = locator.replace('${BITRATE}', audio_stream_bitrate);
+        locator = locator.replace('${DEVICEID}', device_id);
+        
+        res.url = audio_stream_host + locator;
+        
+        debug.print("channelURL(): " + res.url);
+        return res;
     },
     
     release: function() {
@@ -165,3 +273,108 @@ var wspAPI = {
     }
 };
 
+
+
+////////////////////////////////////////////////////////////////////////////////
+
+
+/**
+ * Request the data through HTTP.
+ * @param url Uniform Resoure Locator string.
+ */
+function request(url) {
+    var file = new OpenWSP.stream(url);
+    var buff = file.read();
+    file = null;
+    return buff;
+}
+
+/**
+ * Inner, worker for channels() and channel().
+ * @param item The JSON data node.
+ * @return (object)     a new channel object.
+ * @return (undefined)  the source data is invalid.
+ */
+function inner_channel_info__(item) {
+    var dst = new Object();
+
+    /*
+     * valid the root
+     */
+    if (item == void 0) {
+        return void 0;
+    }
+    
+    /*
+     * query the basic information
+     */
+    dst.name = item.title;
+    dst.description = item.description;
+    dst.id = item.id;
+    
+    /*
+     * thumb resources
+     */
+    if (item.thumbs == void 0) {
+        dst.thumb_small = void 0;
+        dst.thumb_medium = void 0;
+        dst.thumb_large = void 0;
+    } else {
+        dst.thumb_small  = item.thumbs.small_thumb;
+        dst.thumb_medium = item.thumbs.medium_thumb;
+        dst.thumb_large  = item.thumbs.large_thumb;
+    }
+    
+    /*
+     * query the media information
+     */
+    dst.mediainfo = new Array();
+    
+    /* is the channel unavailable ? */
+    if (item.mediainfo != void 0) {
+        var media = new Object();
+        
+        media.id = item.mediainfo.id;
+        dst.mediainfo.push(media);
+    } else {
+        debug.print('no mediainfo!');
+    }
+    
+    /*
+     * extra properties
+     */
+    dst.exproperty = new Array();
+    var prop;
+    
+    if (item.freq != void 0 && item.freq.length) {
+        prop = new Object();
+        
+        prop.name = "frequency (MHz)";
+        prop.description = "the frequency in FM radio broadcast.";
+        prop.value = item.freq;
+        
+        dst.exproperty.push(prop);
+    }
+    
+    if (item.update_time != void 0 && item.update_time.length) {
+        prop = new Object();
+        
+        prop.name = "update time";
+        prop.description = "the last updated time.";
+        prop.value = item.update_time;
+        
+        dst.exproperty.push(prop);
+    }
+    
+    if (item.stream_status != void 0) {
+        prop = new Object();
+        
+        prop.name = "stream status";
+        prop.description = "0 if the stream is unhealthy, 1 if it's on the contrary.";
+        prop.value = item.stream_status;
+        
+        dst.exproperty.push(prop);
+    }
+    
+    return dst;
+}

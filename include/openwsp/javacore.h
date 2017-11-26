@@ -36,7 +36,7 @@ public:
     int init();
     int uninit();
 
-    int execCode(const char *str);
+    int exec(const char *str);
     int cleanUp();
     int getCodeBuffer(const char **out);
     void setContext(void *p);
@@ -50,6 +50,7 @@ public:
 
     void registerFunc(const char *name, jscCallback func, unsigned length);
 
+    jscContext *context();
     jscContext *getGlobal(const char *name);
     jscContext *getProperty(int idx, const char *name);
     jscContext *getIndex(int idx, unsigned int i);

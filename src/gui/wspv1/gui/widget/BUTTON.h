@@ -87,7 +87,7 @@ typedef WM_HMEM BUTTON_Handle;
 
 BUTTON_Handle BUTTON_Create        (int x0, int y0, int xsize, int ysize, int ID, int Flags);
 BUTTON_Handle BUTTON_CreateAsChild (int x0, int y0, int xsize, int ysize, WM_HWIN hParent, int Id, int Flags);
-BUTTON_Handle BUTTON_CreateIndirect(const GUI_WIDGET_CREATE_INFO* pCreateInfo, WM_HWIN hWinParent, int x0, int y0, WM_CALLBACK* cb);
+BUTTON_Handle BUTTON_CreateIndirect(const GUI_WIDGET_CREATE_INFO* pCreateInfo, WM_HWIN hWinParent, int x0, int y0, WM_CALLBACK* cb, void *opaque);
 BUTTON_Handle BUTTON_CreateEx      (int x0, int y0, int xsize, int ysize, WM_HWIN hParent,
                                     int WinFlags, int ExFlags, int Id);
 
@@ -120,7 +120,7 @@ void                         BUTTON_SetDefaultTextColor(GUI_COLOR Color, unsigne
 * Do not call it directly ! It is only to be used from within an
 * overwritten callback.
 */
-void BUTTON_Callback(WM_MESSAGE *pMsg);
+void BUTTON_Callback(WM_MESSAGE *pMsg, void *opaque);
 
 /*********************************************************************
 *

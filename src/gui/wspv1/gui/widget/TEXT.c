@@ -113,7 +113,7 @@ static void _Delete(TEXT_Obj* pObj) {
 *
 *       _TEXT_Callback
 */
-static void _TEXT_Callback (WM_MESSAGE*pMsg) {
+static void _TEXT_Callback (WM_MESSAGE*pMsg, void *opaque) {
   TEXT_Handle hObj = pMsg->hWin;
   TEXT_Obj* pObj = TEXT_H2P(hObj);
   /* Let widget handle the standard messages */
@@ -155,7 +155,7 @@ TEXT_Handle TEXT_CreateEx(int x0, int y0, int xsize, int ysize, WM_HWIN hParent,
   #if TEXT_SUPPORT_TRANSPARENCY
     WinFlags |= WM_CF_HASTRANS;
   #endif
-  hObj = WM_CreateWindowAsChild(x0, y0, xsize, ysize, hParent, WinFlags, _TEXT_Callback,
+  hObj = WM_CreateWindowAsChild(x0, y0, xsize, ysize, hParent, WinFlags, _TEXT_Callback,0,
                                 sizeof(TEXT_Obj) - sizeof(WM_Obj));
   if (hObj) {
     TEXT_Obj* pObj;

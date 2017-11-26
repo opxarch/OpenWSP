@@ -246,7 +246,7 @@ static void _Delete(PROGBAR_Handle hObj) {
 *
 *       _Callback
 */
-static void _PROGBAR_Callback(WM_MESSAGE*pMsg) {
+static void _PROGBAR_Callback(WM_MESSAGE*pMsg, void *opaque) {
   PROGBAR_Handle hObj = (PROGBAR_Handle)pMsg->hWin;
   /* Let widget handle the standard messages */
   if (WIDGET_HandleActive(hObj, pMsg) == 0) {
@@ -278,7 +278,7 @@ PROGBAR_Handle PROGBAR_CreateEx(int x0, int y0, int xsize, int ysize, WM_HWIN hP
 {
   PROGBAR_Handle hObj;
   GUI_USE_PARA(ExFlags);
-  hObj = WM_CreateWindowAsChild(x0, y0, xsize, ysize, hParent, WinFlags, _PROGBAR_Callback,
+  hObj = WM_CreateWindowAsChild(x0, y0, xsize, ysize, hParent, WinFlags, _PROGBAR_Callback,0,
                                 sizeof(PROGBAR_Obj) - sizeof(WM_Obj));
   if (hObj) {
     PROGBAR_Obj* pObj;

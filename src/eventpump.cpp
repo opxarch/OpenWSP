@@ -30,9 +30,10 @@
 #include <openwsp/misc.h>
 #include <openwsp/err.h>
 #include <openwsp/assert.h>
+#include <openwsp/autoptr.h>
 #include <openwsp/thread.h>
 
-#include <openwsp/eventpump.h>
+#include "eventpump.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -40,7 +41,8 @@ namespace openwsp {
 
 WSEvent::WSEvent()
     : prev(0),
-      next(0)
+      next(0),
+      m_canceled_sig(0)
 {
 }
 
@@ -57,6 +59,77 @@ WSEventPump::WSEventPump() {
 
 WSEventPump::~WSEventPump() {
 
+}
+
+/**
+ * Cancel all the events waiting and processing in the queue,
+ * owning EVENT_PRI_NORMAL priority, without a respond.
+ * @return status code.
+ */
+int WSEventPump::cancelEvents() {
+    return cancelEvents(EVENT_PRI_NORMAL, 0);
+}
+
+/**
+ * Cancel all the events, waiting and processing in the queue,
+ * owning EVENT_PRI_NORMAL priority.
+ * @param resp    Optionally, when the targets are all finished, send
+ *                a response back.
+ * @return status code.
+ */
+int WSEventPump::cancelEvents(WSEvent *resp) {
+    return cancelEvents(EVENT_PRI_NORMAL, resp);
+}
+
+/**
+ * Cancel all the events, owning the expected priority, waiting
+ * and processing in the queue.
+ * @param pri     The expected priority. if there is a event whose
+ *                priority is different (!=), the event will be ignored.
+ * @param resp    Optionally, when the targets are all finished, send
+ *                a response back.
+ * @return status code.
+ */
+int WSEventPump::cancelEvents(EventPriority pri, WSEvent *resp) {
+    /*
+     check the priority index
+     */
+    if ((pri < EVENT_PRI_NORMAL) || (pri >= EVENT_PRI_MAX)) {
+        WS_ASSERT(0);
+        return WERR_FAILED;
+    }
+
+    WSEvent *node;
+
+    /* SPIN */ {
+        AutoSpinLock lock(spin[pri]);
+
+        /*
+         * first of all, insert the respond event at the
+         * back of queue so that it will be called after
+         * events in queue are all finished.
+         */
+        resp->ref(MakeLocator());
+        resp->prev = 0;
+        resp->next = root[pri];
+
+        if (root[pri])
+            root[pri]->prev = resp;
+        root[pri] = resp;
+
+        /*
+         * travel the queue and cancel all the events except
+         * the respond event.
+         */
+        node = root[pri]->next;
+
+        while(node) {
+            node->cancel();
+            node = node->next;
+        }
+    }
+
+    return WINF_SUCCEEDED;
 }
 
 /**
@@ -77,14 +150,16 @@ int WSEventPump::push(EventPriority pri, WSEvent *event) {
         return WERR_FAILED;
     }
 
+    event->ref(MakeLocator());
     event->prev = 0;
-    event->next = root[pri];
 
     /*
      Link it to the list within spinning mutex.
      */
     spin[pri].acquire();
     {
+        event->next = root[pri];
+
         if (root[pri])
             root[pri]->prev = event;
         root[pri] = event;
@@ -105,9 +180,15 @@ int WSEventPump::push(EventPriority pri, WSEvent *event) {
 int WSEventPump::pop(WSEvent **out) {
     WSEvent *node;
 
+    /*
+     * This loop ensures the privilege order of which the event is
+     * picked.
+     */
     for (int pri=EVENT_PRI_MAX-1; pri>=0; pri--) {
-        AutoSpinLock lock;
-        {
+
+        /* SPIN */ {
+            AutoSpinLock lock(spin[pri]);
+
             if (root[pri]) {
                 node = root[pri];
 
@@ -117,6 +198,7 @@ int WSEventPump::pop(WSEvent **out) {
                 /* ret */
                 node->next = 0;
                 node->prev = 0;
+                node->release(MakeLocator());
                 *out = node;
                 return WINF_SUCCEEDED;
             }

@@ -841,6 +841,16 @@ static LRESULT CALLBACK _WndProcLCD(HWND hWnd, UINT message, WPARAM wParam, LPAR
       TrackPopupMenu(_hMenuPopup, TPM_RIGHTBUTTON, Point.x, Point.y, 0, GetParent(hWnd), NULL);
     }
     break;
+  case WM_MOUSEHOVER:
+      {
+          ShowCursor(0);
+      }
+      break;
+  case WM_MOUSELEAVE:
+      {
+          ShowCursor(1);
+      }
+      break;
   case WM_LBUTTONUP:
   case WM_LBUTTONDOWN:
   case WM_MOUSEMOVE:
@@ -855,6 +865,16 @@ static LRESULT CALLBACK _WndProcLCD(HWND hWnd, UINT message, WPARAM wParam, LPAR
         fwKeys = 0;
       }
       LCDSIM_SetMouseState(xPos, yPos, fwKeys);
+
+      /*
+       * Handle the mouse tracking
+       */
+      TRACKMOUSEEVENT tme;
+      tme.cbSize = sizeof(tme);
+      tme.hwndTrack = hWnd;
+      tme.dwFlags = TME_LEAVE|TME_HOVER;
+      tme.dwHoverTime = 1;
+      TrackMouseEvent(&tme);
     }
     /* fall through */
   default:

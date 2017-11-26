@@ -23,9 +23,9 @@
 *******************************************************************************/
 #include "audcodec.h"
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
+#include <cstdlib>
+#include <cstdio>
+#include <cstring>
 #include <malloc.h>
 
 #include <openwsp/misc.h>
@@ -120,6 +120,7 @@ void uninit_codec_sh_audio(sh_audio_t *sh_audio) {
  * Allocate the memory that aligned at 16 bytes bound
  */
 static void *memalignInner(size_t size) {
+#if 0
     uintptr_t diff;
     void *ptr;
     ptr = malloc(size+16);
@@ -128,6 +129,8 @@ static void *memalignInner(size_t size) {
     diff= ((-(long)ptr - 1)&15) + 1;
     *((char*)ptr) = diff;
     return &((char*)ptr)[diff]; // to avoid the warning
+#endif
+    return malloc(size);
 }
 
 int init_codec_sh_audio(sh_audio_t *sh_audio) {

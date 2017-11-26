@@ -479,7 +479,7 @@ static void _OnTouch(EDIT_Handle hObj, EDIT_Obj* pObj, WM_MESSAGE*pMsg) {
 *
 *       EDIT__Callback
 */
-static void EDIT__Callback (WM_MESSAGE * pMsg) {
+static void EDIT__Callback (WM_MESSAGE * pMsg, void *opaque) {
   int IsEnabled;
   EDIT_Handle hObj = (EDIT_Handle) pMsg->hWin;
   EDIT_Obj*   pObj = (EDIT_Obj*) GUI_ALLOC_h2p(hObj);
@@ -535,7 +535,7 @@ EDIT_Handle EDIT_CreateEx(int x0, int y0, int xsize, int ysize, WM_HWIN hParent,
   GUI_USE_PARA(ExFlags);
   /* Alloc memory for obj */
   WinFlags |= WM_CF_LATE_CLIP;    /* Always use late clipping since widget is optimized for it. */
-  hObj = WM_CreateWindowAsChild(x0, y0, xsize, ysize, hParent, WM_CF_SHOW | WinFlags, EDIT__Callback,
+  hObj = WM_CreateWindowAsChild(x0, y0, xsize, ysize, hParent, WM_CF_SHOW | WinFlags, EDIT__Callback,0,
                                 sizeof(EDIT_Obj) - sizeof(WM_Obj));
   if (hObj) {
     EDIT_Obj* pObj;

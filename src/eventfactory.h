@@ -17,10 +17,14 @@
 #ifndef EVENTPACK_H_
 #define EVENTPACK_H_
 
-#include <openwsp/eventpump.h>
+#include <new>
+#include "eventpump.h"
 
 namespace openwsp {
 
+//using openwsp::WSEvent; //fixme?
+
+class ThreadBase;
 
 /***************************************************
   *****             Tuple object               *****
@@ -55,25 +59,25 @@ struct Tuple2 {
 template <class ObjT, class Method>
 inline int CallMethod(ObjT* obj,
                       Method method,
-                      void *opaque,
+                      ThreadBase *thread,
                       const Tuple0& arg) {
-  return (obj->*method)(opaque);
+  return (obj->*method)(thread);
 }
 
 template <class ObjT, class Method, class A>
 inline int CallMethod(ObjT* obj,
                       Method method,
-                      void *opaque,
+                      ThreadBase *thread,
                       const Tuple1<A>& arg) {
-  return (obj->*method)(opaque, arg.a);
+  return (obj->*method)(thread, arg.a);
 }
 
 template <class ObjT, class Method, class A, class B>
 inline int CallMethod(ObjT* obj,
                       Method method,
-                      void *opaque,
+                      ThreadBase *thread,
                       const Tuple2<A,B>& arg) {
-  return (obj->*method)(opaque, arg.a, arg.b);
+  return (obj->*method)(thread, arg.a, arg.b);
 }
 
 /***************************************************
@@ -94,20 +98,20 @@ public:
      * @param arg1 Optional, Argument #2
      */
    template <class Method>
-    inline WSEvent* create(Method method) {
-        return new RunnableMethod<Method, Tuple0>(
+    inline WSEvent* bind(Method method) {
+        return new (std::nothrow) RunnableMethod<Method, Tuple0>(
                 m_ptr, method, Tuple0());
     }
 
    template <class Method, class A>
-    inline WSEvent* create(Method method, const A& a) {
-        return new RunnableMethod<Method, Tuple1<A> >(
+    inline WSEvent* bind(Method method, const A& a) {
+        return new (std::nothrow) RunnableMethod<Method, Tuple1<A> >(
             m_ptr, method, Tuple1<A>(a));
     }
 
    template <class Method, class A, class B>
-    inline WSEvent* create(Method method, const A& a, const B& b) {
-        return new RunnableMethod<Method, Tuple2<A, B> >(
+    inline WSEvent* bind(Method method, const A& a, const B& b) {
+        return new (std::nothrow) RunnableMethod<Method, Tuple2<A, B> >(
             m_ptr, method, Tuple2<A,B>(a, b));
     }
 
@@ -121,8 +125,8 @@ protected:
               m_params(params) {
         }
 
-        virtual int run(void *opaque) {
-            return CallMethod(m_obj, m_meth, opaque, m_params);
+        virtual int run(ThreadBase *thread) {
+            return CallMethod(m_obj, m_meth, thread, m_params);
         }
 
     private:
@@ -134,8 +138,6 @@ protected:
 private:
     T* m_ptr;
 };
-
-
 
 } // namespace openwsp
 

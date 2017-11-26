@@ -45,7 +45,7 @@ Purpose     :
 *     -> FRAMEWIN either a) reacts or b)sends WM_NOTIFY_PARENT_REFLECTION back
 *       In case of a) This module reacts !
 */
-static void _cbMin(WM_MESSAGE* pMsg) {
+static void _cbMin(WM_MESSAGE* pMsg, void *opaque) {
   if (pMsg->MsgId == WM_NOTIFY_PARENT_REFLECTION) {
     WM_HWIN hWin = pMsg->hWinSrc;
     FRAMEWIN_Obj* pObj = FRAMEWIN_H2P(hWin);
@@ -56,7 +56,7 @@ static void _cbMin(WM_MESSAGE* pMsg) {
     }
     return;                                       /* We are done ! */
   }
-  BUTTON_Callback(pMsg);
+  BUTTON_Callback(pMsg, opaque);
 }
 
 /*********************************************************************
@@ -126,7 +126,7 @@ WM_HWIN FRAMEWIN_AddMinButton(FRAMEWIN_Handle hObj, int Flags, int Off) {
   WM_HWIN hButton;
   hButton = FRAMEWIN_AddButton(hObj, Flags, Off, GUI_ID_MINIMIZE);
   BUTTON_SetSelfDraw(hButton, 0, &_Draw);
-  WM_SetCallback(hButton, _cbMin);
+  WM_SetCallback(hButton, _cbMin, 0);
   return hButton;
 }
 

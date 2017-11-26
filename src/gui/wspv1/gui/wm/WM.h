@@ -282,12 +282,13 @@ typedef struct {
   } Data;
 } WM_MESSAGE;
 
-typedef void WM_CALLBACK( WM_MESSAGE* pMsg);
+typedef void WM_CALLBACK( WM_MESSAGE* pMsg, void *opaque);
 
 typedef struct {
   GUI_RECT Rect;        /* outer dimensions of window */
   GUI_RECT InvalidRect; /* invalid rectangle */
   WM_CALLBACK* cb;      /* ptr to notification callback */
+  void* opaque;         /* user pointer */
   WM_HWIN hNextLin;     /* Next window in linear list */
   WM_HWIN hParent;
   WM_HWIN hFirstChild;
@@ -329,8 +330,8 @@ void    WM_AttachWindow              (WM_HWIN hWin, WM_HWIN hParent);
 void    WM_AttachWindowAt            (WM_HWIN hWin, WM_HWIN hParent, int x, int y);
 int     WM_CheckScrollPos            (WM_SCROLL_STATE* pScrollState, int Pos, int LowerDist, int UpperDist); /* not to be documented (may change in future version) */
 void    WM_ClrHasTrans               (WM_HWIN hWin);
-WM_HWIN WM_CreateWindow              (int x0, int y0, int xSize, int ySize, U16 Style, WM_CALLBACK* cb, int NumExtraBytes);
-WM_HWIN WM_CreateWindowAsChild       (int x0, int y0, int xSize, int ySize, WM_HWIN hWinParent, U16 Style, WM_CALLBACK* cb, int NumExtraBytes);
+WM_HWIN WM_CreateWindow              (int x0, int y0, int xSize, int ySize, U16 Style, WM_CALLBACK* cb, void *opaque, int NumExtraBytes);
+WM_HWIN WM_CreateWindowAsChild       (int x0, int y0, int xSize, int ySize, WM_HWIN hWinParent, U16 Style, WM_CALLBACK* cb, void *opaque, int NumExtraBytes);
 void    WM_DeleteWindow              (WM_HWIN hWin);
 void    WM_DetachWindow              (WM_HWIN hWin);
 int     WM_GetHasTrans               (WM_HWIN hWin);
@@ -380,7 +381,7 @@ void WM_CheckScrollBounds(WM_SCROLL_STATE* pScrollState); /* not to be documente
 
 
 /* Set (new) callback function */
-WM_CALLBACK* WM_SetCallback       (WM_HWIN Win, WM_CALLBACK* cb);
+WM_CALLBACK* WM_SetCallback       (WM_HWIN Win, WM_CALLBACK* cb, void *opaque);
 
 /* Get size/origin of a window */
 void WM_GetClientRect             (GUI_RECT* pRect);

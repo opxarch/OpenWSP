@@ -18,12 +18,10 @@
  *  Lesser General Public License for more details.
  */
 
-/*******************************************************************************
-*   Header Files                                                               *
-*******************************************************************************/
 #include <openwsp/misc.h>
 #include <openwsp/err.h>
 #include <openwsp/assert.h>
+#include <openwsp/autoptr.h>
 #include <openwsp/thread.h>
 
 #include "threads.h"
@@ -36,7 +34,11 @@ namespace openwsp {
 
 EventLoop::EventLoop()
     : m_mainThread(0),
-      m_ioThread(0)
+      m_ioThread(0),
+      m_audioThread(0),
+      m_tidMain(0),
+      m_tidIo(0),
+      m_tidAudio(0)
 {
 }
 
@@ -48,9 +50,21 @@ EventLoop::~EventLoop() {
  * Do the logical initialization.
  * @return status code.
  */
-int EventLoop::init(ThreadBase *main, ThreadBase *io) {
+int EventLoop::init(ThreadBase *main, ThreadBase *io, ThreadBase *audio) {
+    WS_ASSERT(main && io && audio);
+
     m_mainThread = main;
     m_ioThread = io;
+    m_audioThread = audio;
+
+    m_tidMain = main->self();
+    m_tidIo = io->self();
+    m_tidAudio = audio->self();
+
+    main->sync();
+    io->sync();
+    audio->sync();
+
     return WINF_SUCCEEDED;
 }
 
@@ -63,34 +77,81 @@ int EventLoop::uninit() {
 }
 
 /**
- * Dispatch the events to the target thread.
- * @param type Specify the target thread.
- * @param event Pointer to a Initialized WSEventReq object.
+ * Get the pointer to ThreadBase by ThreadType.
+ * @param out Where to store the pointer.
  * @return status code.
  */
-int EventLoop::PostEvent(ThreadType type, WSEvent *event) {
-    WS_ASSERT(m_mainThread && m_ioThread);
-
-    ThreadBase *target;
-
-    /*
-     * Resolve the target thread
-     */
+int EventLoop::threadBasePtr(ThreadType type, ThreadBase **out) {
     switch(type) {
     case THREAD_IO:
-        target = m_ioThread;
+        *out = m_ioThread;
         break;
     case THREAD_MAIN:
-        target = m_mainThread;
+        *out = m_mainThread;
+        break;
+    case THREAD_AUDIO:
+        *out = m_audioThread;
         break;
     default:
+        *out = 0;
         return WERR_INVALID_TARGET;
     }
+    return WINF_SUCCEEDED;
+}
 
-    /*
-     * Push the event
-     */
-    return target->PostEvent(static_cast<WSEvent*>(event));
+/**
+ * Get the thread ID by ThreadType.
+ * @return 0 if failed.
+ * @return else equal tid.
+ */
+ThreadId_t EventLoop::threadId(ThreadType type) {
+    ThreadId_t exp;
+
+    switch (type) {
+        case THREAD_IO:    exp = m_tidIo; break;
+        case THREAD_MAIN:  exp = m_tidMain; break;
+        case THREAD_AUDIO: exp = m_tidAudio; break;
+        default:           exp = 0;
+    }
+    return exp;
+}
+
+/**
+ * Dispatch the events to the target thread.
+ * @param type Specify the target thread.
+ * @param event Pointer to a Initialized WSEvent object.
+ * @param rc Optionally, where to store the return code.
+ * @return reference to the auto pointer.
+ */
+AutoPtr<WSEvent> EventLoop::PostEvent(ThreadType type, WSEvent *event, int *rc) {
+    WS_ASSERT(m_mainThread && m_ioThread);
+
+    if (!event) {
+        if (rc) (*rc) = WERR_ALLOC_MEMORY;
+        return AutoPtr<WSEvent>(0);
+    }
+
+    AutoPtrPass<WSEvent> ptr = AutoPtr<WSEvent>(event, MakeLocator());
+
+    ThreadBase *target = 0;
+    int ret = threadBasePtr(type, &target);
+
+    if (WS_SUCCESS(ret)) {
+        /*
+         * Push the event
+         */
+        int ret = target->PostEvent(event);
+        if (rc) (*rc) = ret;
+
+        if (WS_SUCCESS(ret)) {
+            return ptr; // done.
+        }
+    }
+    if (rc) *rc = ret;
+
+    //event->release(); //!fixme
+
+    return AutoPtr<WSEvent>(0/*RefCounted<WSEvent>*/);
 }
 
 } // namespace openwsp

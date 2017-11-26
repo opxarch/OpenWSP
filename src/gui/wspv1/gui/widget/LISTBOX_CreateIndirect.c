@@ -32,9 +32,10 @@ Purpose     : Implementation of listbox widget
 *
 *       LISTBOX_CreateIndirect
 */
-LISTBOX_Handle LISTBOX_CreateIndirect(const GUI_WIDGET_CREATE_INFO* pCreateInfo, WM_HWIN hWinParent, int x0, int y0, WM_CALLBACK* cb) {
+LISTBOX_Handle LISTBOX_CreateIndirect(const GUI_WIDGET_CREATE_INFO* pCreateInfo, WM_HWIN hWinParent, int x0, int y0, WM_CALLBACK* cb, void *opaque) {
   LISTBOX_Handle hObj;
   GUI_USE_PARA(cb);
+  GUI_USE_PARA(opaque);
   hObj = LISTBOX_CreateEx(pCreateInfo->x0 + x0, pCreateInfo->y0 + y0, pCreateInfo->xSize, pCreateInfo->ySize,
                           hWinParent, 0, pCreateInfo->Flags, pCreateInfo->Id, 0);
   return hObj;

@@ -285,7 +285,7 @@ void DROPDOWN__AdjustHeight(DROPDOWN_Handle hObj, DROPDOWN_Obj* pObj) {
 *
 *       _DROPDOWN_Callback
 */
-static void _DROPDOWN_Callback (WM_MESSAGE*pMsg) {
+static void _DROPDOWN_Callback (WM_MESSAGE* pMsg, void *opaque) {
   DROPDOWN_Handle hObj = pMsg->hWin;
   DROPDOWN_Obj* pObj = DROPDOWN_H2P(hObj);
   char IsExpandedBeforeMsg;
@@ -358,7 +358,7 @@ DROPDOWN_Handle DROPDOWN_CreateEx(int x0, int y0, int xsize, int ysize, WM_HWIN 
                                   int WinFlags, int ExFlags, int Id)
 {
   DROPDOWN_Handle hObj;
-  hObj = WM_CreateWindowAsChild(x0, y0, xsize, -1, hParent, WinFlags, _DROPDOWN_Callback,
+  hObj = WM_CreateWindowAsChild(x0, y0, xsize, -1, hParent, WinFlags, _DROPDOWN_Callback,0,
                                 sizeof(DROPDOWN_Obj) - sizeof(WM_Obj));
   if (hObj) {
     DROPDOWN_Obj* pObj;

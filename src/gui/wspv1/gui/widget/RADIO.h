@@ -74,7 +74,7 @@ typedef WM_HMEM RADIO_Handle;
 */
 
 RADIO_Handle RADIO_Create        (int x0, int y0, int xsize, int ysize, WM_HWIN hParent, int Id, int Flags, unsigned Para);
-RADIO_Handle RADIO_CreateIndirect(const GUI_WIDGET_CREATE_INFO* pCreateInfo, WM_HWIN hWinParent, int x0, int y0, WM_CALLBACK* cb);
+RADIO_Handle RADIO_CreateIndirect(const GUI_WIDGET_CREATE_INFO* pCreateInfo, WM_HWIN hWinParent, int x0, int y0, WM_CALLBACK* cb, void *opaque);
 RADIO_Handle RADIO_CreateEx      (int x0, int y0, int xsize, int ysize, WM_HWIN hParent,
                                   int WinFlags, int ExFlags, int Id, int NumItems, int Spacing);
 

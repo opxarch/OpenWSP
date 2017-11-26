@@ -28,6 +28,7 @@
 #include <inttypes.h>
 #include <new>
 
+#include <openwsp/types.h>
 #include <openwsp/assert.h>
 #include <openwsp/err.h>
 

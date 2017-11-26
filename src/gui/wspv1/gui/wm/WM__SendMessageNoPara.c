@@ -38,7 +38,7 @@ void WM__SendMessageNoPara(WM_HWIN hWin, int MsgId) {
   if (pWin->cb != NULL) {
     Msg.hWin  = hWin;
     Msg.MsgId = MsgId;
-    (*pWin->cb)(&Msg);
+    (*pWin->cb)(&Msg, pWin->opaque);
   }
 }
 

@@ -387,7 +387,7 @@ void SCROLLBAR__InvalidatePartner(SCROLLBAR_Handle hObj) {     /* Invalidate the
 *
 *       _SCROLLBAR_Callback
 */
-static void _SCROLLBAR_Callback (WM_MESSAGE *pMsg) {
+static void _SCROLLBAR_Callback (WM_MESSAGE *pMsg, void *opaque) {
   SCROLLBAR_Handle hObj;
   SCROLLBAR_Obj* pObj;
   hObj = pMsg->hWin;
@@ -458,7 +458,7 @@ SCROLLBAR_Handle SCROLLBAR_CreateEx(int x0, int y0, int xsize, int ysize, WM_HWI
     }
   }
   /* Create the window */
-  hObj = WM_CreateWindowAsChild(x0, y0, xsize, ysize, hParent, WinFlags, _SCROLLBAR_Callback,
+  hObj = WM_CreateWindowAsChild(x0, y0, xsize, ysize, hParent, WinFlags, _SCROLLBAR_Callback,0,
                                 sizeof(SCROLLBAR_Obj) - sizeof(WM_Obj));
   if (hObj) {
     SCROLLBAR_Obj* pObj = SCROLLBAR_H2P(hObj);

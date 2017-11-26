@@ -503,7 +503,7 @@ static int _AddKey(LISTVIEW_Handle hObj, int Key) {
 *
 *       _LISTVIEW_Callback
 */
-static void _LISTVIEW_Callback (WM_MESSAGE *pMsg) {
+static void _LISTVIEW_Callback (WM_MESSAGE *pMsg, void *opaque) {
   LISTVIEW_Handle hObj;
   LISTVIEW_Obj* pObj;
   WM_SCROLL_STATE ScrollState;
@@ -593,7 +593,7 @@ LISTVIEW_Handle LISTVIEW_CreateEx(int x0, int y0, int xsize, int ysize, WM_HWIN 
     xsize = Rect.x1 - Rect.x0 + 1;
     ysize = Rect.y1 - Rect.y0 + 1;
   }
-  hObj = WM_CreateWindowAsChild(x0, y0, xsize, ysize, hParent, WinFlags, &_LISTVIEW_Callback,
+  hObj = WM_CreateWindowAsChild(x0, y0, xsize, ysize, hParent, WinFlags, &_LISTVIEW_Callback,0,
                                 sizeof(LISTVIEW_Obj) - sizeof(WM_Obj));
   if (hObj) {
     LISTVIEW_Obj* pObj;

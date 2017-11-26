@@ -40,6 +40,7 @@ public:
 
 private:
     uint32_t volatile count;
+    void *spin;
 };
 
 /***************************************************
@@ -48,15 +49,17 @@ private:
 
 class AutoSpinLock {
 public:
-    AutoSpinLock() {
-        lock.acquire();
+    AutoSpinLock(WSSpinLock &lock) :
+        m_lock(lock) {
+        m_lock.acquire();
     }
+
     ~AutoSpinLock() {
-        lock.release();
+        m_lock.release();
     }
 
 private:
-    WSSpinLock lock;
+    WSSpinLock &m_lock;
 };
 
 /***************************************************
@@ -66,6 +69,7 @@ private:
 class WSMutex {
 public:
     WSMutex();
+    ~WSMutex();
 
     void acquire();
     void release();
@@ -74,6 +78,24 @@ public:
 
 private:
     void *mutex;
+};
+
+typedef uint64_t ThreadId_t;
+
+/***************************************************
+  *****           Semaphore object             *****
+  ***************************************************/
+
+class WSSemaphore {
+public:
+    WSSemaphore();
+    ~WSSemaphore();
+
+    void signal();
+    void wait();
+
+private:
+    void *semaphore;
 };
 
 /***************************************************
@@ -88,13 +110,26 @@ public:
     virtual int run(void *opaque)=0;
 
     int create(void *opaque);
+    void sync();
     int wait(int *rc);
+    ThreadId_t self();
+    static ThreadId_t currentId();
+
+    inline void cancel() {
+        m_canceled = true;
+    }
+
+    inline bool cancelRaised() {
+        return m_canceled;
+    }
 
 protected:
     void *m_opaque;
 
 private:
     void *m_thread;
+    volatile bool m_canceled;
+    WSSemaphore m_semaphore;
 
     friend int __threadContext(void *);
 };

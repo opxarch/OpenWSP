@@ -36,7 +36,7 @@ void WM__SendMessage(WM_HWIN hWin, WM_MESSAGE* pMsg) {
   WM_Obj* pWin = WM_HANDLE2PTR(hWin);
   pMsg->hWin = hWin;
   if (pWin->cb != NULL) {
-    (*pWin->cb)(pMsg);
+    (*pWin->cb)(pMsg, pWin->opaque);
   } else {
     WM_DefaultProc(pMsg);
   }

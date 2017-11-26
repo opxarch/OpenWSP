@@ -95,7 +95,7 @@ typedef WM_HMEM LISTBOX_Handle;
 
 LISTBOX_Handle LISTBOX_Create        (const GUI_ConstString* ppText, int x0, int y0, int xsize, int ysize, int Flags);
 LISTBOX_Handle LISTBOX_CreateAsChild (const GUI_ConstString* ppText, WM_HWIN hWinParent, int x0, int y0, int xsize, int ysize, int Flags);
-LISTBOX_Handle LISTBOX_CreateIndirect(const GUI_WIDGET_CREATE_INFO* pCreateInfo, WM_HWIN hWinParent, int x0, int y0, WM_CALLBACK* cb);
+LISTBOX_Handle LISTBOX_CreateIndirect(const GUI_WIDGET_CREATE_INFO* pCreateInfo, WM_HWIN hWinParent, int x0, int y0, WM_CALLBACK* cb, void *opaque);
 LISTBOX_Handle LISTBOX_CreateEx      (int x0, int y0, int xsize, int ysize, WM_HWIN hParent,
                                       int WinFlags, int ExFlags, int Id, const GUI_ConstString* ppText);
 
@@ -131,7 +131,7 @@ void         LISTBOX_SetItemSel      (LISTBOX_Handle hObj, unsigned Index, int O
 void         LISTBOX_SetItemSpacing  (LISTBOX_Handle hObj, unsigned Value);
 void         LISTBOX_SetMulti        (LISTBOX_Handle hObj, int Mode);
 void         LISTBOX_SetOwner        (LISTBOX_Handle hObj, WM_HWIN hOwner);
-void         LISTBOX_SetOwnerDraw    (LISTBOX_Handle hObj, WIDGET_DRAW_ITEM_FUNC * pfDrawItem);
+void         LISTBOX_SetOwnerDraw    (LISTBOX_Handle hObj, WIDGET_DRAW_ITEM_FUNC * pfDrawItem, void *opaque);
 void         LISTBOX_SetScrollStepH  (LISTBOX_Handle hObj, int Value);
 void         LISTBOX_SetSel          (LISTBOX_Handle hObj, int Sel);
 void         LISTBOX_SetScrollbarWidth(LISTBOX_Handle hObj, unsigned Width);

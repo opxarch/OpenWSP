@@ -27,6 +27,7 @@
 #include <inttypes.h>
 #include <climits>
 
+#include <openwsp/types.h>
 #include <openwsp/audioformat.h>
 
 #include "../log.h"

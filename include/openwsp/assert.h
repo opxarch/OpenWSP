@@ -31,15 +31,15 @@ BEGIN_C_DECLS
  */
 #if RING(0)
 # if ENABLE(ASSERTIONS)
-#   define WP_ASSERT_PANIC()   DebugBreakPoint()
+#   define WS_ASSERT_PANIC()   DebugBreakPoint()
 # else
-#   define WP_ASSERT_PANIC()   ((void)0)
+#   define WS_ASSERT_PANIC()   ((void)0)
 # endif
 
 # define DebugBreakPoint() ((void)0)
 
 #elif RING(3)
-# define WP_ASSERT_PANIC()     assert(0)
+# define WS_ASSERT_PANIC()     assert(0)
 #endif
 
 #if RING(3)
@@ -87,7 +87,7 @@ static void wpAssertFailureLog(const char* format,...) {
 #define WS_ASSERT(assertion) \
     (UNLIKELY(!(assertion)) ? \
         (wpAssertFailure(__FILE__, __LINE__, WS_CURRENT_FUNCTION, #assertion), \
-         WP_ASSERT_PANIC()) : \
+         WS_ASSERT_PANIC()) : \
         (void)0)
 
 
@@ -97,11 +97,11 @@ static void wpAssertFailureLog(const char* format,...) {
  * @param   msg        Message format,args,... (must be in brackets).
  *                     eg. WP_ASSERT_LOG(expr, ("msg format", arg1, arg2, ...) );
  */
-#define WP_ASSERT_LOG(assertion, msg) \
+#define WS_ASSERT_LOG(assertion, msg) \
     (UNLIKELY(!(assertion)) ? \
         (wpAssertFailure(__FILE__, __LINE__, WS_CURRENT_FUNCTION, #assertion), \
-         wpAssertFailureMsg msg , \
-         WP_ASSERT_PANIC()) : \
+         wpAssertFailureLog msg , \
+         WS_ASSERT_PANIC()) : \
         (void)0)
 
 
@@ -111,7 +111,7 @@ static void wpAssertFailureLog(const char* format,...) {
  * than what C++0x allows
  * @param   assertion    The expression.
  */
-#define WP_ASSERT_STATIC_INT(assertion)  typedef int known[(assertion) ? 1 : -1]
+#define WS_ASSERT_STATIC_INT(assertion)  typedef int known[(assertion) ? 1 : -1]
 
 /** @def ASSERT_STATIC
  * Asserts that a C++0x compile-time expression is true. If it's not break the
@@ -119,9 +119,9 @@ static void wpAssertFailureLog(const char* format,...) {
  * @param   assertion    The Expression.
  */
 #ifdef HAVE_STATIC_ASSERT
-# define WP_ASSERT_STATIC(assertion) static_assert(!!(assertion), #assertion)
+# define WS_ASSERT_STATIC(assertion) static_assert(!!(assertion), #assertion)
 #else
-# define WP_ASSERT_STATIC(assertion) WP_ASSERT_STATIC_INT(assertion)
+# define WS_ASSERT_STATIC(assertion) WS_ASSERT_STATIC_INT(assertion)
 #endif
 
 
@@ -131,8 +131,8 @@ static void wpAssertFailureLog(const char* format,...) {
  dummy
  */
 #define WS_ASSERT(assertion) ((void)0)
-#define WP_ASSERT_LOG(assertion, msg) ((void)0)
-#define WP_ASSERT_STATIC(assertion) ((void)0)
+#define WS_ASSERT_LOG(assertion, msg) ((void)0)
+#define WS_ASSERT_STATIC(assertion) ((void)0)
 
 #endif //ENABLE(ASSERTIONS)
 

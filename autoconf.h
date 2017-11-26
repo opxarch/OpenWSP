@@ -11,7 +11,8 @@
 /* set up max. outburst. use 65536 for ALSA 0.5, for others 16384 is enough */
 #define MAX_OUTBURST 65536
 
-#define USES_SDL_AUDIO 1
+//#define USES_SDL_AUDIO 1
+#define USES_DSOUND_AUDIO 1
 
 #define USES_FFMPEG_CODEC 1
 #define USES_PCM_CODEC 1

@@ -155,14 +155,14 @@ public:
         LONG volume;
         switch (cmd) {
             case AOCONTROL_GET_VOLUME: {
-                ao_control_vol_t* vol = (ao_control_vol_t*)arg;
+                as_control_vol_t* vol = (as_control_vol_t*)arg;
                 IDirectSoundBuffer_GetVolume(hdsbuf, &volume);
                 vol->left = vol->right = pow(10.0, (float)(volume+10000) / 5000.0);
                 //printf("ao_dsound: volume: %f\n",vol->left);
                 return CONTROL_OK;
             }
             case AOCONTROL_SET_VOLUME: {
-                ao_control_vol_t* vol = (ao_control_vol_t*)arg;
+                as_control_vol_t* vol = (as_control_vol_t*)arg;
                 volume = (DWORD)(log10(vol->right) * 5000.0) - 10000;
                 IDirectSoundBuffer_SetVolume(hdsbuf, volume);
                 //printf("ao_dsound: volume: %f\n",vol->left);

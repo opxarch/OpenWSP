@@ -681,7 +681,7 @@ void WM_SendMessage(WM_HWIN hWin, WM_MESSAGE* pMsg) {
     pWin = WM_H2P(hWin);
     if (pWin->cb != NULL) {
       pMsg->hWin = hWin;
-      (*pWin->cb)(pMsg);
+      (*pWin->cb)(pMsg, pWin->opaque);
     }
     WM_UNLOCK();
   }
@@ -801,6 +801,7 @@ void WM_InvalidateArea(const GUI_RECT* pRect) {
 */
 WM_HWIN WM_CreateWindowAsChild( int x0, int y0, int width, int height
                                ,WM_HWIN hParent, U16 Style, WM_CALLBACK* cb
+                               ,void *opaque
                                ,int NumExtraBytes) {
   WM_Obj* pWin;
   WM_HWIN hWin;
@@ -841,6 +842,7 @@ WM_HWIN WM_CreateWindowAsChild( int x0, int y0, int width, int height
     pWin->Rect.x1 = x0 + width - 1;
     pWin->Rect.y1 = y0 + height - 1;
     pWin->cb = cb;
+    pWin->opaque = opaque;
     /* Copy the flags which can simply be accepted */
     pWin->Status |= (Style & (WM_CF_SHOW |
                               WM_SF_MEMDEV |
@@ -883,8 +885,8 @@ WM_HWIN WM_CreateWindowAsChild( int x0, int y0, int width, int height
 *
 *       WM_CreateWindow
 */
-WM_HWIN WM_CreateWindow(int x0, int y0, int width, int height, U16 Style, WM_CALLBACK* cb, int NumExtraBytes) {
-  return WM_CreateWindowAsChild(x0,y0,width,height, 0 /* No parent */,  Style, cb, NumExtraBytes);
+WM_HWIN WM_CreateWindow(int x0, int y0, int width, int height, U16 Style, WM_CALLBACK* cb, void *opaque, int NumExtraBytes) {
+  return WM_CreateWindowAsChild(x0,y0,width,height, 0 /* No parent */,  Style, cb, opaque, NumExtraBytes);
 }
 
 /*********************************************************************
@@ -1605,7 +1607,7 @@ int WM_Exec(void) {
 *   Callback for background window
 *
 */
-static void cbBackWin( WM_MESSAGE* pMsg) {
+static void cbBackWin( WM_MESSAGE* pMsg, void *opaque) {
   const WM_KEY_INFO* pKeyInfo;
   switch (pMsg->MsgId) {
   case WM_KEY:
@@ -1701,14 +1703,14 @@ void WM_Init(void) {
 		  drawing routines as they do not have to check if the window is valid.
 	  */
     #if GUI_NUM_LAYERS == 1
-      WM__ahDesktopWin[0] = WM_CreateWindow(0, 0, GUI_XMAX, GUI_YMAX, WM_CF_SHOW, cbBackWin, 0);
+      WM__ahDesktopWin[0] = WM_CreateWindow(0, 0, GUI_XMAX, GUI_YMAX, WM_CF_SHOW, cbBackWin,0, 0);
       WM__aBkColor[0] = GUI_INVALID_COLOR;
       WM_InvalidateWindow(WM__ahDesktopWin[0]); /* Required because a desktop window has no parent. */
     #else
     {
       int i;
       for (i = 0; i < GUI_NUM_LAYERS; i++) {
-        WM__ahDesktopWin[i] = WM_CreateWindowAsChild(0, 0, GUI_XMAX, GUI_YMAX, WM_UNATTACHED, WM_CF_SHOW, cbBackWin, 0);
+        WM__ahDesktopWin[i] = WM_CreateWindowAsChild(0, 0, GUI_XMAX, GUI_YMAX, WM_UNATTACHED, WM_CF_SHOW, cbBackWin,0, 0);
         WM__aBkColor[i] = GUI_INVALID_COLOR;
         WM_InvalidateWindow(WM__ahDesktopWin[i]); /* Required because a desktop window has no parent. */
       }

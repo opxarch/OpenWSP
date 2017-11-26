@@ -32,9 +32,10 @@ Purpose     : Implementation of multipage widget
 *       MULTIPAGE_CreateIndirect
 */
 MULTIPAGE_Handle MULTIPAGE_CreateIndirect(const GUI_WIDGET_CREATE_INFO* pCreateInfo,
-                                          WM_HWIN hWinParent, int x0, int y0, WM_CALLBACK* cb) {
+                                          WM_HWIN hWinParent, int x0, int y0, WM_CALLBACK* cb, void *opaque) {
   MULTIPAGE_Handle  hThis;
   GUI_USE_PARA(cb);
+  GUI_USE_PARA(opaque);
   hThis = MULTIPAGE_CreateEx(pCreateInfo->x0 + x0, pCreateInfo->y0 + y0, pCreateInfo->xSize, pCreateInfo->ySize,
                              hWinParent, 0, pCreateInfo->Flags, pCreateInfo->Id);
   return hThis;
