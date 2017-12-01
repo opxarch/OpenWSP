@@ -2,7 +2,7 @@
 
 <br> an opensource hardware, providing a Web Stream codec/Player framework for embedded systems. <br/>
 
-These prictures show how WSP runs on a 240x320 LCD platform:
+These pictures show how WSP runs on a 240x320 LCD platform:
 
 ![screen](https://raw.githubusercontent.com/opxarch/privdats/master/OpenWSP/320x240-captured-0.JPG)
 screen-1 Volume Panel<br/>
