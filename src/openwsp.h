@@ -24,6 +24,7 @@
 #include "eventloop.h"
 #include "eventfactory.h"
 #include "gui/gui.h"
+#include "config.h"
 
 namespace openwsp {
 
@@ -47,10 +48,10 @@ extern class Openwsp *openwsp_instance_;
 
 class Openwsp {
 public:
-    Openwsp(int &argc, char **argv);
+    Openwsp();
     ~Openwsp();
 
-    int init();
+    int init(int &argc, char **argv);
     int uninit();
 
     int RunMainLoop();
@@ -63,7 +64,7 @@ public:
 #endif
 
     inline EventLoop &threadLoop() {
-        return *events;
+        return *m_eventloop;
     }
 
     /////////////////////////////////////////////////////////////////////
@@ -71,7 +72,7 @@ public:
     ////////////////////////////////////////////////////////////////////
     inline ThreadIO &threadIO() {
         AssertThread(THREAD_IO);
-        return *ioThread;
+        return *m_ioThread;
     }
 
     /////////////////////////////////////////////////////////////////////
@@ -79,7 +80,7 @@ public:
     ////////////////////////////////////////////////////////////////////
     inline ThreadMain &threadMain() {
         AssertThread(THREAD_MAIN);
-        return *mainThread;
+        return *m_mainThread;
     }
 
     /////////////////////////////////////////////////////////////////////
@@ -87,32 +88,48 @@ public:
     ////////////////////////////////////////////////////////////////////
     inline ThreadAudio &threadAudio() {
         AssertThread(THREAD_AUDIO);
-        return *audioThread;
+        return *m_audioThread;
     }
+
+    /////////////////////////////////////////////////////////////////////
+    // for Core Thread context only
+    ////////////////////////////////////////////////////////////////////
+    WSConfig &config();
 
     /**
      * Get the instance (create a new one if needed).
      * @return pointer to the instance.
      */
-    static inline Openwsp *instance() {
-        return openwsp_instance_;
+    static inline Openwsp &instance() {
+        if (!openwsp_instance_) {
+            openwsp_instance_ = new Openwsp();
+        }
+        return *openwsp_instance_;
     }
 public:
     int idle();
 
 private:
+    static Openwsp *openwsp_instance_;
     EventFactory<Openwsp> event;
+    ThreadId_t            m_coreThread;
+    bool                  m_unstart;
 
 protected:
-    class gui::wsGUI      *gui;
-    class ThreadIO        *ioThread;
-    class ThreadMain      *mainThread;
-    class ThreadAudio     *audioThread;
-    class EventLoop       *events;
+    WSConfig              *m_config;
+    class gui::wsGUI      *m_gui;
+    class ThreadIO        *m_ioThread;
+    class ThreadMain      *m_mainThread;
+    class ThreadAudio     *m_audioThread;
+    class EventLoop       *m_eventloop;
 };
 
 inline Openwsp &app() {
-    return *(Openwsp::instance());
+    return Openwsp::instance();
+}
+
+inline WSConfig &config() {
+    return app().config();
 }
 
 } // namespace openwsp

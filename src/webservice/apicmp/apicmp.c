@@ -27,6 +27,7 @@
 
 #include <openwsp/apifile.h>
 #include <openwsp/crc.h>
+#include <openwsp/bswap.h>
 
 #define DEBUG_APICMP 0
 #define BUFF_CHUNK_SIZE (8192)
@@ -115,13 +116,13 @@ int main(int argc, char *argv[]) {
      Generate file header
      */
     memset(buff, 0, outlen);
-    buff->magic = NUMBER_MAGIC_APIFILE;
-    buff->codepage_len = srclen;
-    buff->codepage_offset = sizeof(apifile_t);
+    buff->magic             = ne2be (NUMBER_MAGIC_APIFILE);
+    buff->codepage_len      = ne2be (srclen);
+    buff->codepage_offset   = ne2be (sizeof (apifile_t));
 
 #if DEBUG_APICMP
-    printf("apicmp: codepage_len: 0x%x\n", buff->codepage_len);
-    printf("apicmp: codepage_offset: 0x%x\n", buff->codepage_offset);
+    printf("apicmp: codepage_len: 0x%x\n", srclen);
+    printf("apicmp: codepage_offset: 0x%x\n", sizeof (apifile_t);
 #endif
 
     wpos = (uint8_t *)buff;
@@ -151,10 +152,10 @@ int main(int argc, char *argv[]) {
     /*
      Generate CRC-32 checksum
      */
-    ((apifile_t *)wpos)->codepage_checksum = crc32(buff, len);
+    ((apifile_t *)wpos)->codepage_checksum = ne2be ( crc32 (buff, len) );
 
 #if DEBUG_APICMP
-    printf("apicmp: codepage_checksum: 0x%x\n", ((apifile_t *)wpos)->codepage_checksum);
+    printf("apicmp: codepage_checksum: 0x%x\n", (be2ne( (apifile_t *)wpos)->codepage_checksum) );
 #endif
 
     /*

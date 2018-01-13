@@ -43,29 +43,33 @@ namespace openwsp {
 *   Global Variables                                                           *
 *******************************************************************************/
 
-Openwsp *openwsp_instance_ = 0;
+Openwsp *Openwsp::openwsp_instance_ = 0;
 
 
 /*******************************************************************************
 *   the Manager Object of the program                                                   *
 *******************************************************************************/
 
-Openwsp::Openwsp(int &argc, char **argv)
+Openwsp::Openwsp()
     : event (this),
-      gui (new gui::wsGUI),
-      ioThread (new ThreadIO),
-      mainThread (new ThreadMain),
-      audioThread (new ThreadAudio),
-      events (new EventLoop)
+      m_coreThread (WSThread::currentId()),
+      m_unstart (true),
+      m_config (new WSConfig),
+      m_gui (new gui::wsGUI),
+      m_ioThread (new ThreadIO),
+      m_mainThread (new ThreadMain),
+      m_audioThread (new ThreadAudio),
+      m_eventloop (new EventLoop)
 {
 }
 
 Openwsp::~Openwsp() {
-    delete gui;
-    delete ioThread;
-    delete mainThread;
-    delete audioThread;
-    delete events;
+    delete m_gui;
+    delete m_ioThread;
+    delete m_mainThread;
+    delete m_audioThread;
+    delete m_config;
+    delete m_eventloop;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -74,22 +78,27 @@ Openwsp::~Openwsp() {
  * Do the logical initialization.
  * @return status code.
  */
-int Openwsp::init() {
+int Openwsp::init(int &argc, char **argv) {
     int rc = WERR_FAILED;
     
     /*
      GUI
      */
-    rc = gui->init(); UPDATE_RC(rc);
+    rc = m_gui->init(); UPDATE_RC(rc);
 
     /*
      Threads
      */
-    rc = mainThread->init(this); UPDATE_RC(rc);
-    rc = ioThread->init(this); UPDATE_RC(rc);
-    rc = audioThread->init(this); UPDATE_RC(rc);
+    rc = m_mainThread->init(this); UPDATE_RC(rc);
+    rc = m_ioThread->init(this); UPDATE_RC(rc);
+    rc = m_audioThread->init(this); UPDATE_RC(rc);
 
-    rc = events->init(mainThread, ioThread, audioThread); UPDATE_RC(rc);
+    /*
+     Configurations
+     */
+    rc = m_config->load(); UPDATE_RC(rc);
+
+    rc = m_eventloop->init(m_mainThread, m_ioThread, m_audioThread); UPDATE_RC(rc);
 
     return WINF_SUCCEEDED;
 }
@@ -100,16 +109,17 @@ int Openwsp::init() {
  */
 int Openwsp::uninit() {
     int rc;
-    rc = events->uninit();
+    rc = m_eventloop->uninit();
     AssertRC(rc);
-    rc = ioThread->uninit();
+    rc = m_ioThread->uninit();
     AssertRC(rc);
-    rc = mainThread->uninit();
+    rc = m_mainThread->uninit();
     AssertRC(rc);
-    rc = audioThread->uninit();
+    rc = m_audioThread->uninit();
     AssertRC(rc);
-    rc = gui->uninit();
+    rc = m_gui->uninit();
     AssertRC(rc);
+    rc = m_config->store();
     return WINF_SUCCEEDED;
 }
 
@@ -119,7 +129,13 @@ int Openwsp::uninit() {
  * @return status code
  */
 int Openwsp::idle() {
-    return gui->DoMessages();
+    AssertThread(THREAD_MAIN);
+
+    if (m_unstart) {
+        m_unstart = false;
+        return m_gui->StartUp();
+    }
+    return m_gui->DoMessages();
 }
 
 
@@ -133,17 +149,17 @@ int Openwsp::idle() {
  */
 int Openwsp::RunMainLoop() {
     int rc;
-    mainThread->wait(&rc);
+    m_mainThread->wait(&rc);
     AssertRC(rc);
 
-    ioThread->cancel();
+    m_ioThread->cancel();
 
-    ioThread->wait(&rc);
+    m_ioThread->wait(&rc);
     AssertRC(rc);
 
-    audioThread->cancel();
+    m_audioThread->cancel();
 
-    audioThread->wait(&rc);
+    m_audioThread->wait(&rc);
     AssertRC(rc);
     return WINF_SUCCEEDED;
 }
@@ -153,6 +169,16 @@ int Openwsp::RunMainLoop() {
  */
 void Openwsp::QuitApplication() {
 }
+
+/////////////////////////////////////////////////////////////////////
+// for Core Thread context only
+////////////////////////////////////////////////////////////////////
+
+WSConfig &Openwsp::config() {
+    WS_ASSERT (WSThread::currentId() == m_coreThread);
+    return *m_config;
+}
+
 
 #if ENABLE(ASSERTIONS)
 

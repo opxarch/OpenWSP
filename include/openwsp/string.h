@@ -19,8 +19,6 @@
 
 #include <openwsp/misc.h>
 
-BEGIN_C_DECLS
-
 namespace openwsp {
 
 int compareString(const char *src, const char *dest, int len);
@@ -29,7 +27,8 @@ int compareStringNocase(const char *src, const char *dest, int len);
 int stringToInteger(const char *src, int len, int *val);
 int stringToFloat(const char *src, int len, float *val);
 int stringToBoolean(const char *src, int len, bool *bl);
-int stringDuplicate(const char *src, int len, char **dest);
+char *stringDuplicate(const char *src);
+int stringDuplicateEx(const char *src, int len, char **dest);
 
 int integerToString(int src, int radix, char *buff, int len, int *outlen);
 int floatToString(float src, int radix, long precision, char *buff, int len, int *outlen);
@@ -41,9 +40,7 @@ int encodeString(char *src, const char *fromcode, const char *tocode, char *buff
 
 } // namespace openwsp
 
-END_C_DECLS
-
 // C runtime
-#include <string.h>
+#include <cstring>
 
 #endif //!defined(OPENWSP_STRING_H_)

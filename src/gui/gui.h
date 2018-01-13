@@ -30,7 +30,7 @@ public:
 
     int init();
     int uninit();
-
+    int StartUp();
     int DoMessages();
 };
 
@@ -41,6 +41,7 @@ enum GUI_OPCODE {
     GUI_OPCODE_INVALID = 0,
     GUI_OPCODE_INIT,
     GUI_OPCODE_UNINIT,
+    GUI_OPCODE_STARTUP,
     GUI_OPCODE_DOMSG
 };
 

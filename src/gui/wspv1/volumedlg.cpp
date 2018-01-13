@@ -133,7 +133,7 @@ int VolumeDlg::destroy(void)
 void VolumeDlg::show(void)
 {
 	if(hFrameVolume) {
-		//MPI_GetVolume();
+	    gui().getVolume();
 		WM_ShowWindow(hFrameVolume);
 
 		WM_BringToTop(hFrameVolume);

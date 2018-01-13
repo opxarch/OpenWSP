@@ -15,6 +15,8 @@ extern "C" {
 #include "openwsp/err.h"
 #include "openwsp/assert.h"
 
+#include "widgetTitlebox.h"
+
 #include "logics.h"
 #include "resources.h"
 #include "maindlg.h"
@@ -67,7 +69,7 @@ static int ButtonPlay_State = BS_PLAY;
 
 MainDlg::MainDlg()
     : hFrameMain(0),
-      m_titlebox("NO CHANNEL")
+      m_titlebox(0)
 {
 }
 
@@ -182,7 +184,7 @@ void MainDlg::handle_cbFrameWin(WM_MESSAGE* pMsg)
             break;
 
         case WM_PAINT:
-            m_titlebox.onPaint();
+            m_titlebox->onPaint();
     }
 
     WM_DefaultProc(pMsg);
@@ -194,9 +196,13 @@ int MainDlg::create(void)
 	hFrameMain = GUI_CreateDialogBox( _aMainDlg,GUI_COUNTOF(_aMainDlg),
 									&_cbFrameWin, this,
 									0, 0, 0); 
-
 	if (!hFrameMain) {
 	    return WERR_FAILED;
+	}
+
+	m_titlebox = new (std::nothrow) WidgetTitlebox(5, 35, 230, 20, "NO CHANNEL");
+	if (!m_titlebox) {
+	    return WERR_ALLOC_MEMORY;
 	}
 
 	FRAMEWIN_SetActive(hFrameMain, 1);
@@ -236,7 +242,7 @@ static void Format_hhmmss(char *buf, float time)
 
 void MainDlg::updateTitle(const std::string &title)
 {
-    m_titlebox.setText(title.c_str());
+    m_titlebox->setText(title.c_str());
     WM_Invalidate(hFrameMain);
     FRAMEWIN_SetActive(hFrameMain, 1);
 }

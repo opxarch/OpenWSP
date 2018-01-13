@@ -49,6 +49,10 @@ int wsGUI::uninit() {
     return guiInvoke(GUI_OPCODE_UNINIT, 0);
 }
 
+int wsGUI::StartUp() {
+    return guiInvoke(GUI_OPCODE_STARTUP, 0);
+}
+
 int wsGUI::DoMessages() {
     return guiInvoke(GUI_OPCODE_DOMSG, 0);
 }

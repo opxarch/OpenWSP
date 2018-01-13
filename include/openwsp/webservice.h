@@ -52,7 +52,6 @@ public:
 
 private:
     Javacore    *js;
-    stream_s    *stream;
     void        *module_registry;
 
     bool         module_loaded;
@@ -60,7 +59,7 @@ private:
 private:
     int resolveModule_inner(const char *fn);
     int parserExecModule(void *buff, size_t len, char **coffset, int *clen);
-    int execCode(const char *code);
+    int execModule(const char *code);
 
     int channelInner(jscContext *p, channel **ch);
 

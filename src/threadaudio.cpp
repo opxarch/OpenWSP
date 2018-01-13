@@ -1,5 +1,5 @@
 /** @file
- * OpenWSP - I/O Thread.
+ * OpenWSP - Audio Thread.
  */
 
 /*
@@ -48,8 +48,11 @@ ThreadAudio::ThreadAudio()
       audio_clock_length(0),
       m_write_len(0),
       m_write_total(0),
-      volumeLeft(100),
-      volumeRight(100)
+      streamCacheSize(0),
+      streamCacheMinPercent(0),
+      streamCacheSeekMinPercent(0),
+      volumeLeft(0),
+      volumeRight(0)
 {
 }
 
@@ -60,9 +63,16 @@ ThreadAudio::~ThreadAudio() {
 ////////////////////////////////////////////////////////////////////////////////
 
 int ThreadAudio::init(void *opaque) {
-    int rc;
-    rc = this->WSThread::create(opaque);
-    return rc;
+    /*
+     * Register configurations
+     */
+    config().insert(new configElement("streamCacheSize", 320, &streamCacheSize));
+    config().insert(new configElement("streamCacheMinPercent", 20, &streamCacheMinPercent));
+    config().insert(new configElement("streamCacheSeekMinPercent", 50, &streamCacheSeekMinPercent));
+    config().insert(new configElement("mainVolumeLeft", 100, &volumeLeft));
+    config().insert(new configElement("mainVolumeRight", 100, &volumeRight));
+
+    return this->WSThread::create(opaque);
 }
 
 int ThreadAudio::uninit() {
@@ -193,8 +203,8 @@ int ThreadAudio::onSetupAudioChain(void) {
      * Sync the initial volume
      */
     as_control_vol_t vol = {
-        .left = volumeLeft,
-        .right = volumeRight
+        .left = CONFIG_GET(volumeLeft),
+        .right = CONFIG_GET(volumeRight)
     };
 
     audio_out->control(AOCONTROL_GET_VOLUME, &vol);
@@ -245,10 +255,25 @@ int ThreadAudio::onCreateContext(const char *url) {
         return WERR_PLAYLIST;
     }
 
-    if(CFG_stream_cache_size>0) {
-        if(!stream_enable_cache(stream,CFG_stream_cache_size*1024,
-                              CFG_stream_cache_size*1024*(CFG_stream_cache_min_percent / 100.0),
-                              CFG_stream_cache_size*1024*(CFG_stream_cache_seek_min_percent / 100.0)))
+    /*
+     * Fix up the cache parameters
+     */
+    if(CONFIG_GET(streamCacheSize) < 0) {
+        /*
+         * cache option not set, will use our computed value.
+         * buffer in KBytes, *5 because the prefill is 20% of the buffer.
+         */
+        CONFIG_SET(streamCacheSize, (stream->streaming_ctrl->prebuffer_size/1024)*5);
+        if( CONFIG_GET(streamCacheSize) < 64 ) CONFIG_SET(streamCacheSize, 64);  // 16KBytes min buffer
+    }
+
+    /*
+     * Enable cache sub-system
+     */
+    if(CONFIG_GET(streamCacheSize) > 0) {
+        if(!stream_enable_cache(stream,CONFIG_GET(streamCacheSize)*1024,
+                              CONFIG_GET(streamCacheSize)*1024*(CONFIG_GET(streamCacheMinPercent) / 100.0),
+                              CONFIG_GET(streamCacheSize)*1024*(CONFIG_GET(streamCacheSeekMinPercent) / 100.0)))
         return WERR_STREAM_ENABLE_CACHE;
     }
 
@@ -395,6 +420,8 @@ int ThreadAudio::onEndContext() {
     return WINF_SUCCEEDED;
 }
 
+/////////////////////////////////////////////////////////////////////
+
 int ThreadAudio::onLoadAudio(const char *file) {
     if (state != ARS_IDLE) {
         this->onEndContext();
@@ -422,11 +449,13 @@ int ThreadAudio::onGetVolume(int *left, int *right) {
         }
     }
 
-    if (left) *left = volumeLeft;
-    if (right) *right = volumeRight;
+    if (left) *left = CONFIG_GET(volumeLeft);
+    if (right) *right = CONFIG_GET(volumeRight);
 
     return 1;
 }
+
+/////////////////////////////////////////////////////////////////////
 
 int ThreadAudio::onSetVolume(int left, int right) {
     AssertThread(THREAD_AUDIO);
@@ -437,8 +466,8 @@ int ThreadAudio::onSetVolume(int left, int right) {
 
         audio_out->control(AOCONTROL_GET_VOLUME, &vol);
     }
-    volumeLeft = left;
-    volumeRight = right;
+    CONFIG_SET(volumeLeft, left);
+    CONFIG_SET(volumeRight, right);
     return 1;
 }
 

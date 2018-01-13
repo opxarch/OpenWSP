@@ -1,6 +1,6 @@
 /*
  *  OpenWSP (an opensource webstream codec)
- *  Copyleft (C) 2016, The first Middle School in Yongsheng Lijiang China
+ *  Copyleft (C) 2016, The 1st Middle School in Yongsheng Lijiang China
  *  please contact with <diyer175@hotmail.com> if you have any problems.
  *
  *  This project is free software; you can redistribute it and/or
@@ -14,33 +14,29 @@
  *  Lesser General Public License for more details.
  */
 
-#ifndef GUI_MAINDLG_H_
-#define GUI_MAINDLG_H_
+#ifndef WEBSERVICE_SERVICES_H_
+#define WEBSERVICE_SERVICES_H_
 
-#include <string>
+#include "serviceBase.h"
 
-namespace gui {
+namespace openwsp {
 
-class MainDlg {
+class ServiceNtpImpl : public ServiceBase {
 public:
-    MainDlg();
-    int create(void);
-    int destroy(void);
+    int init();
+    int uninit();
 
-    void refershState(int State, int AudioClock, int AudioClockLength);
-    void updateTitle(const std::string &title);
+    const char *getname();
+    const char *getshortname();
 
-    void handle_cbFrameWin(WM_MESSAGE* pMsg);
-private:
-    void onButtonPlay(void);
-    void onMenuOpenCatalogs(void);
-    void onMenuVolumeCtl(void);
+    int connect();
+    int process();
+    int disconnect();
 
 private:
-    FRAMEWIN_Handle hFrameMain;
-    class WidgetTitlebox *m_titlebox;
+    int m_socket;
 };
 
-} // namespace gui
+} // namespace openwsp
 
-#endif //!defined(GUI_MAINDLG_H_)
+#endif //!defined(WEBSERVICE_SERVICES_H_)

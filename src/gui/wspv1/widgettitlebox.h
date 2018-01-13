@@ -19,15 +19,18 @@
 
 #include <string>
 
+#include "widgetbase.h"
+
 namespace gui {
 
-class WidgetTitlebox {
+class WidgetTitlebox : public WidgetBase {
 public:
-    WidgetTitlebox();
-    WidgetTitlebox(const char *text);
+    WidgetTitlebox(int x, int y, int width, int height);
+    WidgetTitlebox(int x, int y, int width, int height, const char *text);
 
     void setText(const char *text);
     void onPaint();
+
 private:
     std::string m_text;
     const void *m_icon;

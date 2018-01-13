@@ -1,3 +1,7 @@
+![Build status](https://img.shields.io/badge/OpenWSP-0.1-blue.svg)
+![Build status](https://img.shields.io/badge/build-passing-green.svg)
+![Item status](https://img.shields.io/badge/status-unstable-lightgreen.svg)
+
 # OpenWSP (developing)
 
 <br> an opensource hardware, providing a Web Stream codec/Player framework for embedded systems. <br/>
@@ -20,18 +24,16 @@ screen-4 Audio Playing<br/>
 <br/> &emsp;&emsp;Currently we have two available font-ends: `desktop` and `smart terminal`. The desktop version is under development, while the smart version has an μC/GUI user interface, and can be connected with a TFT-LCD device, furthermore, an optional touch-pad driver is being constructed.
 <br/>
 <br/>
-<br/> &emsp;&emsp;You may have trouble in building the project, as we fix up the makefiles and other scripts frequently for the purpose of developing & debugging. However, we will release the first ALPHA version before long!
-<br/>
 
 ----
 
-## dependency:
+## building tools dependency:
 sed 4.2.1<br/>
 python 2.7<br/>
 
 ----
 
-## languages:
+## coding languages:
 Native ASM<br/>
 ANSI C<br/>
 C++<br/>

@@ -25,6 +25,7 @@
 
 #include "eventfactory.h"
 #include "eventpump.h"
+#include "config.h"
 
 namespace openwsp {
 
@@ -76,6 +77,7 @@ public:
     /////////////////////////////////////////////////////////////////////
     // for I/O Thread context only
     ////////////////////////////////////////////////////////////////////
+    int onConnectService();
     int onGetCatalogs(WSList<catalog *> *dst);
     int onGetChannels(int id, WSList<channel *> *dst);
     int onGetChannelInfo(int id, channel **out);
@@ -83,6 +85,9 @@ public:
 
 private:
     Webservice *websrv;
+
+private:
+    CONFIG_VAR(const char *, webmoduleName);
 };
 
 /*
@@ -143,8 +148,13 @@ private:
     std::string     filenameToLoad;
     int             m_write_len;
     int             m_write_total;
-    int             volumeLeft;
-    int             volumeRight;
+
+private:
+    CONFIG_VAR(int, streamCacheSize);
+    CONFIG_VAR(int, streamCacheMinPercent);
+    CONFIG_VAR(int, streamCacheSeekMinPercent);
+    CONFIG_VAR(int, volumeLeft);
+    CONFIG_VAR(int, volumeRight);
 };
 
 /***************************************************

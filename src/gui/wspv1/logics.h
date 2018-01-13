@@ -37,6 +37,7 @@ class GuiMain {
 public:
     GuiMain();
     ~GuiMain();
+    void connectService();
     void openCatelogDlg();
     void openChannelsDlg(int id);
     void loadChannel(int id, const std::string &title);
@@ -46,6 +47,8 @@ public:
     void processRc(int rc);
 
 private:
+    int eventConnectService(void *opaque);
+    int respConnectService(void *opaque, int rc);
     int eventOpenCatelogDlg(void *opaque);
     int respOpenCatelogDlg(void *opaque, void *list);
     int eventOpenChannelsDlg(void *opaque, int id);
@@ -80,8 +83,6 @@ inline VolumeDlg *volumeDlg()
 
 inline GuiMain &gui()
 {
-    if (!g_guimain)
-        g_guimain = new GuiMain; //fixme?
     return *g_guimain;
 }
 

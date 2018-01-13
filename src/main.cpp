@@ -26,26 +26,21 @@
 #include "openwsp/version.h"
 #include "openwsp/assert.h"
 
-#if 1
-# include "stream/stream.h"
-# include "audiosys/audiosystem.h"
-# include "codec/audcodec.h"
-# include "codec/aud.h"
-#endif
-
 #include "openwsp.h"
 
 using namespace openwsp;
 
 ////////////////////////////////////////////////////////////////////////////////
 
-static void checkError(int rc) {
-    if (WS_FAILURE(rc)) {
-        const ErrorInfo *err = GetErrorMsg(rc);
-        std::cout<<"Error tracing: ("<<err->code<<") "<<err->msgDefine<<": "<<
-                err->msgFull<<std::endl;
-    }
-}
+  static void
+checkError(int rc)
+  {
+      if ( WS_FAILURE (rc) )  {
+          const ErrorInfo *err = GetErrorMsg (rc);
+          std::cout<<"Error tracing: ("<<err->code<<") "<<err->msgDefine<<": "<<
+                  err->msgFull<<std::endl;
+      }
+  }
 
 /**
  * Program main entry
@@ -54,64 +49,36 @@ static void checkError(int rc) {
  * @param   argv        Vector list of command-line arguments.
  * @returns Exiting status.
  */
-int main(int argc, char *argv[]) {
-    int rc = WINF_SUCCEEDED;
-    std::cout<<appBanner<<std::endl;
+  int
+main(int argc, char *argv[])
+  {
+      int rc = WINF_SUCCEEDED;
+      std::cout << appBanner << std::endl;
 
-    try {
-        // create the main application instance
-        openwsp_instance_ = new Openwsp(argc, argv);
-        if (WS_SUCCESS(rc = app().init())) {
+      try  {
+          /*
+           * create the main application instance and Initialize.
+           */
+          rc = app().init (argc, argv);
 
-            const char *url = "http://http.hz.qingting.fm/386.mp3"; //; //"D:/1.wav"
-            //"http://api2.qingting.fm/v6/media/channellives/142486"
-#if 0
-            openwsp::stream_t *s;
-            int filetype;
-            char buff[BUFFER_SIZE];
+          if ( WS_SUCCESS (rc) )  {
+             /*
+              Run the ui running loop.
+              it will not return until the program has been closed.
+              */
+              rc = app().RunMainLoop();
+              checkError(rc);
+              rc = app().uninit();
 
-            int len;
-            s = openwsp::open_stream(url, NULL, &filetype);
-            if (s) {
-                while (1) {
-                    len = openwsp::stream_read(s, buff, BUFFER_SIZE);
-                    if (len > 0) {
-                        std::cout<<"recv:"<<buff<<std::endl;
-                    } else {
-                        break;
-                    }
-                }
-            } else
-                std::cout<<"failed."<<std::endl;
+              /* end all up */
+              return 0;
+          }
 
-            std::cout<<"closed"<<std::endl;
-#endif
+          checkError(rc);
+          return -1;
 
-#if 0
-            rc = app().createAudioProcessContext(url);
-            checkError(rc);
-
-            if (WS_SUCCESS(rc)) {
-                app().runAudioProcess();
-                std::cout<<"audio end"<<std::endl;
-                app().endAudioPrcoessContext();
-            }
-#endif
-
-            /*
-             Run the ui running loop.
-             it will not return until the program has been closed.
-             */
-            rc = app().RunMainLoop();
-            checkError(rc);
-            rc = app().uninit();
-        }
-
-        checkError(rc);
-        return -1;
-
-    } catch(std::exception& e) {
-        std::cout<<"Exception tracing:"<<e.what()<<std::endl;
-        exit(0);
-    }
-}
+      }  catch ( std::exception& exp )  {
+          std::cout<<"Exception tracing:" << exp.what() << std::endl;
+          exit (0);
+      }
+  }

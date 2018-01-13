@@ -432,6 +432,8 @@ COMMON-OBJS := gui/wm/WM.c.o \
         gui/core/GUI_CursorHeaderM.c.o \
         gui/core/GUI_CursorHeaderMI.c.o \
         gui/core/GUI_CursorHeaderMPx.c.o \
+        gui/core/GUI_CursorBusyM.c.o \
+        gui/core/GUI_CursorBusyMPx.c.o \
         gui/core/GUI_CursorPal.c.o \
         gui/core/GUI_CursorPalI.c.o \
         gui/core/GUI_DispBin.c.o \

@@ -74,6 +74,15 @@ static void outputaudio(void *unused, Uint8 *stream, int len);
 static
 class SDLImpl : public IAudioOutput {
 public:
+    SDLImpl() :
+        buffer(0),
+        read_pos(0),
+        write_pos(0),
+#ifdef USE_SDL_INTERNAL_MIXER
+        volume(SDL_MIX_MAXVOLUME)
+#endif
+    {}
+
     const char *getname() const {
         return "SDLlib audio output";
     }
@@ -316,9 +325,9 @@ private:
     volatile int read_pos;
     // may only be modified by audio thread
     volatile int write_pos;
-    #ifdef USE_SDL_INTERNAL_MIXER
-    unsigned char volume=SDL_MIX_MAXVOLUME;
-    #endif
+#ifdef USE_SDL_INTERNAL_MIXER
+    unsigned char volume;
+#endif
 
 private:
 

@@ -22,6 +22,7 @@
 #include <openwsp/err.h>
 #include <openwsp/webservice.h>
 
+#include "config.h"
 #include "openwsp.h"
 #include "threads.h"
 
@@ -30,7 +31,8 @@
 namespace openwsp {
 
 ThreadIO::ThreadIO()
-    : websrv(new Webservice)
+    : websrv(new Webservice),
+      webmoduleName(0)
 {
 }
 ThreadIO::~ThreadIO() {
@@ -40,20 +42,17 @@ ThreadIO::~ThreadIO() {
 ////////////////////////////////////////////////////////////////////////////////
 
 int ThreadIO::init(void *opaque) {
-    int rc;
-    rc = this->WSThread::create(opaque);
+    /*
+     Register configurations
+     */
+    config().insert(new configElement("webmoduleName", WEBMOULE_DEFAULT, &webmoduleName));
+
+    int rc = this->WSThread::create(opaque);
 
     /*
      initiate the Web service
      */
-    rc = websrv->init();     UPDATE_RC(rc);
-
-    //ws_log::write(log::M_AUDIOSYS, log::INFO, "1223\ndf\n   ");
-    //ws_log(log::M_AUDIOSYS, log::INFO) << "123\nhellow " << "world\n12345\n456" << endlog;
-
-    rc = websrv->LoadModule("Qingting FM support API"); UPDATE_RC(rc);
-    rc = websrv->connect(); UPDATE_RC(rc);
-
+    rc = websrv->init();
     return rc;
 }
 
@@ -105,6 +104,16 @@ int ThreadIO::run(void *opaque) {
 /////////////////////////////////////////////////////////////////////
 // for I/O Thread context only
 ////////////////////////////////////////////////////////////////////
+
+int ThreadIO::onConnectService() {
+    AssertThread(THREAD_IO);
+
+    int rc = websrv->LoadModule(webmoduleName);
+    if (WS_SUCCESS(rc)) {
+        rc = websrv->connect();
+    }
+    return rc;
+}
 
 int ThreadIO::onGetCatalogs(WSList<catalog *> *dst) {
     AssertThread(THREAD_IO);

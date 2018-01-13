@@ -7,3 +7,7 @@ fixup: #171126001:
 4. Improved the "QingTing FM" Webservice API.
 5. Update the C/C++ header files.
 6. Fixup README.md.
+
+fixup: #180113001:
+1. Add NTP client implement stub.
+2. Add Distributed Configuration Management mechanism.

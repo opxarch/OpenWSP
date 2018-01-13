@@ -4,7 +4,7 @@
 
 /*
  * NOTE: This file is generated automatically by 'apicmp'.
- * Don't try to modify this file directly, or you have to change the
+ * Don't try to modify this file directly, or you may have to change the
  * checksum and other fields in the file header.
  *
  * this file is NOT any part of qingting API, and it's
@@ -28,6 +28,7 @@
  */
 
 register(
+    "QingTing-FM",
     "Qingting FM support API",
     "OpenWSP",
     0,0,1,
@@ -299,7 +300,7 @@ function inner_channel_info__(item) {
     var dst = new Object();
 
     /*
-     * valid the root
+     * validate the root
      */
     if (item == void 0) {
         return void 0;

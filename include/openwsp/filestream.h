@@ -57,21 +57,21 @@ public:
     Filestream();
     ~Filestream();
 
-    int Open(const char *filename, const char *mode);
-    int Close();
+    int open(const char *filename, const char *mode);
+    int close();
 
     /* in/out */
     /* ................................................ */
-    file_off Read(void *buffer, file_off size, file_off count);
-    file_off Write(const void *buffer, file_off size, file_off count);
-    int Seek(file_off pos, StreamSeekMode mode);
-    file_off Tell();
-    file_off GetSize();
-    int Flush();
+    file_off read(void *buffer, file_off size, file_off count);
+    file_off write(const void *buffer, file_off size, file_off count);
+    int seek(file_off pos, StreamSeekMode mode);
+    file_off tell();
+    file_off getSize();
+    int flush();
 
     /* error handle */
     /* ................................................ */
-    StreamError GetError() const;
+    StreamError getError() const;
 
 private:
     FILE *fd;

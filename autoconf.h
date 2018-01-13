@@ -2,6 +2,7 @@
 #define autoconf_h_
 
 #define WEBAPIS_PATH "./apis"
+#define WEBMOULE_DEFAULT "QingTing-FM"
 
 #define HAVE_WINSOCK2 1
 //#define HAVE_SYS_MMAN_H 1

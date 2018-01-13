@@ -89,6 +89,30 @@ static inline uint64_t bswap64(uint64_t x)
 #define LE2NEC(s, x) (x)
 #endif
 
+
+// ne2be ... native-endian to big-endian
+// ne2le ... native-endian to little-endian
+
+#if HAVE(BIGENDIAN)
+#define ne2be16(x) (x)
+#define ne2be32(x) (x)
+#define ne2be64(x) (x)
+#define ne2le16(x) bswap16(x)
+#define ne2le32(x) bswap32(x)
+#define ne2le64(x) bswap64(x)
+#define NE2BEC(s, x) (x)
+#define NE2LEC(s, x) BSWAPC(s, x)
+#else
+#define ne2be16(x) bswap16(x)
+#define ne2be32(x) bswap32(x)
+#define ne2be64(x) bswap64(x)
+#define ne2le16(x) (x)
+#define ne2le32(x) (x)
+#define ne2le64(x) (x)
+#define NE2BEC(s, x) BSWAPC(s, x)
+#define NE2LEC(s, x) (x)
+#endif
+
 #define BE2NE16C(x) BE2NEC(16, x)
 #define BE2NE32C(x) BE2NEC(32, x)
 #define BE2NE64C(x) BE2NEC(64, x)
@@ -96,6 +120,14 @@ static inline uint64_t bswap64(uint64_t x)
 #define LE2NE32C(x) LE2NEC(32, x)
 #define LE2NE64C(x) LE2NEC(64, x)
 
+#define NE2BE16C(x) NE2BEC(16, x)
+#define NE2BE32C(x) NE2BEC(32, x)
+#define NE2BE64C(x) NE2BEC(64, x)
+#define NE2LE16C(x) NE2LEC(16, x)
+#define NE2LE32C(x) NE2LEC(32, x)
+#define NE2LE64C(x) NE2LEC(64, x)
+
+/*@todo */
 #if HAVE(BIGENDIAN)
 #define be2me_16(x) (x)
 #define be2me_32(x) (x)

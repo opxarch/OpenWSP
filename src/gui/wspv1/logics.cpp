@@ -94,7 +94,7 @@ VolumeDlg *g_volumedlg = 0;
 /**
  * Message callback of background
  */
-static void _cbBkWindow(WM_MESSAGE* pMsg, void *opaque) {
+static void handle_cbBkWindow(WM_MESSAGE* pMsg, void *opaque) {
     static GUI_MEMDEV_Handle _hBkMemDev;
 
     UNUSED(opaque);
@@ -130,13 +130,12 @@ static void _cbBkWindow(WM_MESSAGE* pMsg, void *opaque) {
  * Inner, Initialize the GUI.
  * @return status code.
  */
-static int initGUI(void) {
+static int invoke_initGUI(void) {
     int r, rc;
 
+    g_guimain = new (std::nothrow) GuiMain;
     if (!g_guimain) {
-        g_guimain = new (std::nothrow) GuiMain;
-        if (!g_guimain)
-            return WERR_ALLOC_MEMORY;
+        return WERR_ALLOC_MEMORY;
     }
 
     r = GUI_Init();
@@ -149,8 +148,9 @@ static int initGUI(void) {
     WM_EnableMemdev(WM_HBKWIN);
 
     /* Set callback for background */
-    WM_SetCallback(WM_HBKWIN, &_cbBkWindow, 0);
+    WM_SetCallback(WM_HBKWIN, &handle_cbBkWindow, 0);
 
+    //GUI_CURSOR_Select(&GUI_CursorBusyM);
     GUI_CURSOR_Show();
     //GUI_MessageBox("OpenWSP smart Radio v0.1","Version",0);
 
@@ -172,11 +172,23 @@ static int initGUI(void) {
     return rc;
 }
 
+/*
+ * Inner, start up the GUI first.
+ * @return status code.
+ */
+static int invoke_startUp() {
+    /*
+     * Connect to the servers
+     */
+    g_guimain->connectService();
+    return WINF_SUCCEEDED;
+}
+
 /**
  * Inner, dispatch & process the messages.
  * @return status code.
  */
-static int doMessages() {
+static int invoke_doMessages() {
     int timeDelta;
 
     timeDelta = GUI_GetTime();
@@ -206,15 +218,15 @@ int guiInvoke(GUI_OPCODE code, void *ptr) {
      * Initialize the GUI framework
      * @return status code.
      */
-    case GUI_OPCODE_INIT:
+    case GUI_OPCODE_INIT: {
 #if OS(WIN32)
         rc = beginSIM();
         UPDATE_RC(rc);
-
-        rc = initGUI();
-        UPDATE_RC(rc);
 #endif
-        break;
+        rc = invoke_initGUI();
+        UPDATE_RC(rc);
+    }
+    break;
 
     /*
      * Destroy the GUI
@@ -228,11 +240,19 @@ int guiInvoke(GUI_OPCODE code, void *ptr) {
         break;
 
     /*
+     * Start up the GUI first.
+     * @return status code.
+     */
+    case GUI_OPCODE_STARTUP:
+        rc = invoke_startUp();
+        break;
+
+    /*
      * Dispatch & process the messages
      * @return status code.
      */
     case GUI_OPCODE_DOMSG:
-        rc = doMessages();
+        rc = invoke_doMessages();
         break;
 
     default:
@@ -250,7 +270,33 @@ GuiMain::GuiMain() :
 GuiMain::~GuiMain() {
 }
 
+////////////////////////////////////////////////////////////////////////////////
 
+void GuiMain::connectService() {
+    app().threadLoop().PostEvent(
+            THREAD_IO,
+            event.bind(&GuiMain::eventConnectService));
+}
+
+// THREAD_IO
+
+int GuiMain::eventConnectService(void *opaque) {
+    int rc = app().threadIO().onConnectService();
+
+    app().threadLoop().PostEvent(
+            THREAD_MAIN,
+            event.bind(&GuiMain::respConnectService, rc));
+    return 1;
+}
+
+// THREAD_MAIN
+
+int GuiMain::respConnectService(void *opaque, int rc) {
+    processRc(rc);
+    return 1;
+}
+
+////////////////////////////////////////////////////////////////////////////////
 
 void GuiMain::openCatelogDlg() {
     app().threadLoop().PostEvent(

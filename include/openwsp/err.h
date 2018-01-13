@@ -59,7 +59,7 @@
 #define WERR_INVALID_FILE (-12)
 /** Failed on file checksum. */
 #define WERR_CHECKSUM_DATA (-13)
-/** Failed on running code. */
+/** Failed in running code. */
 #define WERR_RUN_CODE (-14)
 /** No item matched. */
 #define WERR_NO_MATCHED (-15)
@@ -73,6 +73,14 @@
 #define WERR_INVALID_SRC_STR_ENCODING (-19)
 /** Invalid string encoding convertion */
 #define WERR_INVALID_STR_ENCODING (-20)
+/** Failed to connect service */
+#define WERR_CONNECT_TO_SERVICE (-21)
+/** Failed in receiving data from the service */
+#define WERR_RECV_FROM_SERVICE (-22)
+/** Failed in writing file */
+#define WERR_WRITE_FILE (-23)
+/** Failed in writing file */
+#define WERR_READ_FILE (-23)
 
 /* }}gen */
 

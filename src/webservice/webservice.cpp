@@ -23,8 +23,8 @@
 *******************************************************************************/
 #include <new>
 #include <iostream>
-#include <stdlib.h>
-#include <string.h>
+#include <cstdlib>
+#include <cstring>
 #include <openwsp/javacore.h>
 #include <openwsp/err.h>
 #include <openwsp/assert.h>
@@ -32,6 +32,7 @@
 #include <openwsp/crc.h>
 #include <openwsp/apifile.h>
 #include <openwsp/timer.h>
+#include <openwsp/string.h>
 #include "stream/tcp.h"
 #include "stream/stream.h"
 
@@ -48,35 +49,37 @@ namespace openwsp {
 
 class moduleNode {
 public:
-    moduleNode(const char *name,
-        const char *author,
-        int major,
-        int minor,
-        int revise,
+    moduleNode(const char *name, const char *description, const char *author,
+        int major, int minor, int revise,
         const char *date,
         moduleNode *prev,
-        moduleNode *next)
-    {
-        m_name = name ? strdup(name) : 0;
-        m_author = author ? strdup(author) : 0;
-        m_major = major;
-        m_minor = minor;
-        m_revise = revise;
-        m_date = date ? strdup(date) : 0;
-        m_code = 0;
-        m_prev = prev;
-        m_next = next;
-    }
+        moduleNode *next
+        /*
+         initialization list
+         */
+      ) : m_name    (name ? stringDuplicate(name) : 0),
+          m_description (description ? stringDuplicate(description) : 0),
+          m_author  (author ? stringDuplicate(author) : 0),
+          m_major   (major),
+          m_minor   (minor),
+          m_revise  (revise),
+          m_date    (date ? stringDuplicate(date) : 0),
+          m_code    (0),
+          m_prev    (prev),
+          m_next    (next)
+    {}
 
     ~moduleNode() {
-        if (m_name) free(m_name);
-        if (m_author) free(m_author);
-        if (m_date) free(m_date);
-        if (m_code) free(m_code);
+        delete [] m_name;
+        delete [] m_description;
+        delete [] m_author;
+        delete [] m_date;
+        delete [] m_code;
     }
 
-    int dupCode(const char *code) {
-        m_code = strdup(code);
+    int setCode(const char *code) {
+        delete [] m_code;
+        m_code = stringDuplicate(code);
         return !m_code ?
                 WERR_ALLOC_MEMORY
               : WINF_SUCCEEDED;
@@ -84,6 +87,7 @@ public:
 
 public:
     char *m_name;
+    char *m_description;
     char *m_author;
     int m_major;
     int m_minor;
@@ -116,11 +120,11 @@ void api_register(jscContext *p);
 
 ////////////////////////////////////////////////////////////////////////////////
 
-Webservice::Webservice() {
-    js = 0;
-    stream = 0;
-    module_registry = 0;
-    module_loaded = false;
+Webservice::Webservice() :
+    js (new Javacore),
+    module_registry(0),
+    module_loaded(false)
+{
 }
 
 Webservice::~Webservice() {
@@ -136,10 +140,6 @@ int Webservice::init() {
     /*
      initiate the javascript core
      */
-    js = new (std::nothrow) Javacore();
-    if (!js)
-        return WERR_ALLOC_MEMORY;
-
     rc = js->init();
     if (WS_FAILURE(rc))
         return rc;
@@ -201,7 +201,7 @@ int Webservice::init() {
      initialize the root of registry.
      */
     module_registry = (void*) new (std::nothrow) moduleNode(
-            0,0,0,0,0,0,0,0
+            0,0,0,0,0,0,0,0,0
             );
     if (!module_registry)
         return WERR_ALLOC_MEMORY;
@@ -221,13 +221,8 @@ int Webservice::init() {
  * @return status code.
  */
 int Webservice::uninit() {
-    int rc = WERR_FAILED;
-
-    if (js) {
-        js->uninit();
-        delete js;
-        rc = WINF_SUCCEEDED;
-    }
+    js->uninit();
+    delete js;
 
     moduleNode *node;
     moduleNode *prev;
@@ -243,7 +238,7 @@ int Webservice::uninit() {
         /*NOP*/
     }
 
-    return rc;
+    return WINF_SUCCEEDED;
 }
 
 /**
@@ -262,6 +257,14 @@ int Webservice::parserExecModule(void *buff, size_t len, char **coffset, int *cl
     char *codepage;
     apifile_t *api = (apifile_t *)buff;
 
+    /*
+     Swap the byte order if needed.
+     */
+    api->magic              = be2ne(api->magic);
+    api->codepage_checksum  = be2ne(api->codepage_checksum);
+    api->codepage_len       = be2ne(api->codepage_len);
+    api->codepage_offset    = be2ne(api->codepage_offset);
+	
     /*
      Validate the magic number
      */
@@ -290,7 +293,7 @@ int Webservice::parserExecModule(void *buff, size_t len, char **coffset, int *cl
         return WERR_CHECKSUM_DATA;
 
     /*
-     Execute the code
+     Convert the codes into ASC-II number area.
      */
     for (unsigned i = 0; i < codelen; i++)
         codepage[i] -= ASCII_BASE_OFFSET;
@@ -328,17 +331,21 @@ int Webservice::resolveModule_inner(const char *fn) {
     for (;;) {
         len = stream_read(stream, chunk, sizeof(chunk));
         if (len<=0) {
-            /* Parser the module data. */
-            rc = parserExecModule(buff, total, &codepage, &codelen);
-            if (WS_FAILURE(rc)) {
-                free(buff);
-                return rc;
-            }
+            if (buff) {
+                /* Parser the module data. */
+                rc = parserExecModule(buff, total, &codepage, &codelen);
+                if (WS_FAILURE(rc)) {
+                    free(buff);
+                    return rc;
+                }
 
-            /* Execute the code page */
-            rc = execCode(codepage);
-            free(buff);
-            return WS_FAILURE(rc) ? WERR_RUN_CODE : rc;
+                /* Execute the code page */
+                rc = execModule(codepage);
+                free(buff);
+                return WS_FAILURE(rc) ? WERR_RUN_CODE : rc;
+            } else {
+                return WERR_READ_FILE;
+            }
         }
         
         /*
@@ -421,7 +428,7 @@ int Webservice::ResolveModules() {
  * @param code Pointer to the code buffer.
  * @return status code
  */
-int Webservice::execCode(const char *code) {
+int Webservice::execModule(const char *code) {
     int rc;
 
     js->cleanUp();
@@ -440,6 +447,11 @@ int Webservice::LoadModule(const char *name) {
     int rc;
     bool found = false;
     moduleNode *node;
+
+    if (!name) {
+        return WERR_NO_MATCHED;
+    }
+
     /*
      Match the target
      */
@@ -1070,11 +1082,12 @@ static void ws_debug_error(jscContext *p) {
 void api_register(jscContext *p) {
     int rc;
     const char *name = p->tostring(p, 1);
-    const char *author = p->tostring(p, 2);
-    int major = p->tointeger(p, 3);
-    int minor = p->tointeger(p, 4);
-    int revise = p->tointeger(p, 5);
-    const char *date = p->tostring(p, 6);
+    const char *description = p->tostring(p, 2);
+    const char *author = p->tostring(p, 3);
+    int major = p->tointeger(p, 4);
+    int minor = p->tointeger(p, 5);
+    int revise = p->tointeger(p, 6);
+    const char *date = p->tostring(p, 7);
 
     Javacore &jsc = p->getJsc(p);
     Webservice *websrv = (Webservice*)(jsc.getContext());
@@ -1082,6 +1095,7 @@ void api_register(jscContext *p) {
 #if DEBUG_WEBSERVICE
     std::cout<<"api_register():"<<std::endl
             <<" name = "<< name <<std::endl
+            <<" description = " << description <<std::endl
             <<" author = "<< author <<std::endl
             <<" major = "<< major <<std::endl
             <<" minor = "<< minor <<std::endl
@@ -1094,11 +1108,8 @@ void api_register(jscContext *p) {
      */
     moduleNode *prev = (moduleNode*)websrv->module_registry;
     moduleNode *node = new (std::nothrow) moduleNode(
-                name,
-                author,
-                major,
-                minor,
-                revise,
+                name, description, author,
+                major, minor, revise,
                 date,
                 0 /*prev*/,
                 prev /*next*/
@@ -1115,7 +1126,7 @@ void api_register(jscContext *p) {
      link it to registry
      */
     if (WS_SUCCESS(rc)) {
-        rc = node->dupCode(buff);
+        rc = node->setCode(buff);
 
         if (WS_SUCCESS(rc)) {
             ((moduleNode*)websrv->module_registry)->m_prev = node;

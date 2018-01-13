@@ -14,33 +14,41 @@
  *  Lesser General Public License for more details.
  */
 
-#ifndef GUI_MAINDLG_H_
-#define GUI_MAINDLG_H_
-
-#include <string>
+#ifndef GUI_WIDGETBASE_H_
+#define GUI_WIDGETBASE_H_
 
 namespace gui {
 
-class MainDlg {
+class WidgetBase {
 public:
-    MainDlg();
-    int create(void);
-    int destroy(void);
+    WidgetBase(int x, int y, int width, int height) {
+        resize(x, y, width, height);
+    }
 
-    void refershState(int State, int AudioClock, int AudioClockLength);
-    void updateTitle(const std::string &title);
+    virtual ~WidgetBase() {}
 
-    void handle_cbFrameWin(WM_MESSAGE* pMsg);
-private:
-    void onButtonPlay(void);
-    void onMenuOpenCatalogs(void);
-    void onMenuVolumeCtl(void);
+    virtual void resize(int x, int y, int width, int height) {
+        m_x = x;
+        m_y = y;
+        m_width = width;
+        m_height = height;
+    }
 
-private:
-    FRAMEWIN_Handle hFrameMain;
-    class WidgetTitlebox *m_titlebox;
+    virtual void onPaint() = 0;
+
+protected:
+    int m_x;
+    int m_y;
+    int m_width;
+    int m_height;
+
+    inline int getX() { return m_x; }
+    inline int getY() { return m_y; }
+    inline int getWidth() { return m_width; }
+    inline int getHeight() { return m_height; }
 };
 
 } // namespace gui
 
-#endif //!defined(GUI_MAINDLG_H_)
+
+#endif //!defined(GUI_WIDGETBASE_H_)

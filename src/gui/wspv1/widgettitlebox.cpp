@@ -11,12 +11,14 @@ extern "C" {
 
 namespace gui {
 
-WidgetTitlebox::WidgetTitlebox() :
+WidgetTitlebox::WidgetTitlebox(int x, int y, int width, int height) :
+    WidgetBase(x, y, width, height),
     m_icon(&bmTitleboxIcon) {
 }
 
-WidgetTitlebox::WidgetTitlebox(const char *text)
-    : m_text(text),
+WidgetTitlebox::WidgetTitlebox(int x, int y, int width, int height, const char *text)
+    : WidgetBase(x, y, width, height),
+      m_text(text),
       m_icon(&bmTitleboxIcon) {
 }
 
@@ -28,10 +30,10 @@ void WidgetTitlebox::onPaint() {
     GUI_RECT rClient;
     WM_GetClientRect(&rClient);
 
-    int widgetX0 = 5;
-    int widgetY0 = 35;
-    int widgetX1 = 230; // X size
-    int widgetY1 = 20; // Y size
+    int widgetX0 = getX();
+    int widgetY0 = getY();
+    int widgetX1 = getWidth(); // X size
+    int widgetY1 = getHeight(); // Y size
 
     widgetX0 += rClient.x0;
     widgetY0 += rClient.y0;
